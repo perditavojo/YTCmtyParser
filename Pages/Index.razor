@@ -56,8 +56,67 @@
             <div>
                 @foreach (PostData postData in sharedPostDatas)
                 {
-                    <p>@postData.PostID</p>
+                    string whoCanSee = postData.IsSponsorsOnly ? "頻道會員專屬" : "所有頻道會員";
 
+                    <div class="card m-2">
+                        <div class="card-body">
+                            <div>誰能看到：@whoCanSee</div>
+                            <div>貼文網址：<a href="@postData.Url" target="_blank">@postData.Url</a></div>
+                            <div>
+                                <a href="@postData.AuthorThumbnailUrl" target="_blank">
+                                    <img class="img-thumbnail"
+                                         src="@postData.AuthorThumbnailUrl"
+                                         alt="@postData.AuthorText">
+                                </a>
+                                &nbsp;
+                                @postData.AuthorText
+                            </div>
+                            @if (postData.ContentTexts?.Any() == true)
+                            {
+                                <div>貼文內容：</div>
+                                @foreach (RunData runData in postData.ContentTexts)
+                                {
+                                    <div style="white-space: pre-wrap; line-break:anywhere;">
+                                        @if (runData.IsLink)
+                                        {
+                                            <a href="@runData.Url" target="_blank">@runData.Text</a>
+                                        }
+                                        else
+                                        {
+                                            @runData.Text
+                                        }
+                                    </div>
+                                }
+                            }
+                            <div>
+                                發布時間：@postData.PublishedTimeText
+                            </div>
+                            <div>
+                                投票次數：@postData.VoteCount
+                            </div>
+                            @if (postData.Attachments?.Any() == true)
+                            {
+                                <div>附件內容：</div>
+                                @foreach (AttachmentData attachmentData in postData.Attachments)
+                                {
+                                    <div class="mb-2">
+                                        @if (attachmentData.IsVideo)
+                                        {
+                                            <a href="@attachmentData.Url" target="_blank">
+                                                <img class="img-thumbnail" src="@attachmentData.Url" alt="附件">
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <a href="@attachmentData.Url" target="_blank">
+                                                <img class="img-thumbnail" src="@attachmentData.Url" alt="附件">
+                                            </a>
+                                        }
+                                    </div>
+                                }
+                            }
+                        </div>
+                    </div>
                 }
             </div>
         </div>
