@@ -2,7 +2,6 @@
 using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
-using System.Diagnostics;
 using System.Net;
 using System.Text;
 using System.Text.Json;
@@ -10,6 +9,7 @@ using System.Text.RegularExpressions;
 using YTApi.Commons.Extensions;
 using YTApi.Commons.Models;
 using YTApi.Commons.Sets;
+using YTCmtyParser.Commons.Utils;
 using IElement = AngleSharp.Dom.IElement;
 
 namespace YTApi.Commons;
@@ -17,7 +17,7 @@ namespace YTApi.Commons;
 /// <summary>
 /// 函式類別
 /// </summary>
-public static class Function
+public static class Functions
 {
     /// <summary>
     /// 從 YouTube 頻道自定義網址取得頻道 ID
@@ -54,8 +54,8 @@ public static class Function
     /// <param name="httpClient">HttpClient</param>
     /// <param name="channelID">字串，影片 ID</param>
     /// <param name="cookies">字串，Cookies</param>
-    /// <returns>InitialData</returns>
-    public static InitialData GetInitialData(
+    /// <returns>Task&lt;InitialData&gt;</returns>
+    public static async Task<InitialData> GetInitialData(
         HttpClient httpClient,
         string channelID,
         string cookies)
@@ -277,7 +277,7 @@ public static class Function
                 $"接收到的內容：{Environment.NewLine}" +
                 $"{htmlContent}{Environment.NewLine}";
 
-            Console.WriteLine(errorMessage);
+            await AlertUtil.ShowErrorAlert(errorMessage);
         }
 
         return initialData;
@@ -314,8 +314,8 @@ public static class Function
     /// <param name="ytConfig">YTConfig</param>
     /// <param name="cookies">字串，Cookies</param>
     /// <param name="referer">字串，HTTP 參照位址</param>
-    /// <returns>JsonElement</returns>
-    public static JsonElement GetJsonElement(
+    /// <returns>Task&lt;JsonElement&gt;</returns>
+    public static async Task<JsonElement> GetJsonElement(
         HttpClient httpClient,
         YTConfig? ytConfig,
         string cookies,
@@ -363,7 +363,7 @@ public static class Function
                     $"接收到的內容：{Environment.NewLine}" +
                     $"{receivedJsonContent}{Environment.NewLine}";
 
-                Debug.WriteLine(errorMessage);
+                await AlertUtil.ShowErrorAlert(errorMessage);
             }
         }
 

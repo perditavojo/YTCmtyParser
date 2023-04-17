@@ -10,9 +10,9 @@
 @using YTCmtyParser.Data;
 @using Microsoft.Maui.Controls;
 @inject IHttpClientFactory httpClientFactory;
-@inject PostDataService postDataService;
+@inject YTCmtyService ytCmtyService;
 
-<h1>獲取社群貼文</h1>
+<h1>獲取 YouTube 社群貼文</h1>
 
 <div class="card mb-2">
     <div class="card-body">
@@ -25,13 +25,13 @@
                 <button class="btn btn-primary"
                         @onclick="() => FetchLatestPosts(urlYtCh)"
                         disabled="@isBtnFetchLatestPostsDisabled">
-                    取得最新的社群貼文
+                    取得社群貼文
                 </button>
                 &nbsp;
                 <button class="btn btn-outline-secondary"
                         @onclick="FetchOlderPosts"
                         disabled="@isBtnFetchOlderPostsDisabled">
-                    取得更舊的社群貼文
+                    取得先前的社群貼文
                 </button>
                 &nbsp;
                 <button class="btn btn-outline-danger"
@@ -53,11 +53,13 @@
                     獲取的貼文數量：@sharedPostDatas.Count
                 </div>
             </div>
+            <div>
+                @foreach (PostData postData in sharedPostDatas)
+                {
+                    <p>@postData.PostID</p>
 
-            @foreach (PostData postData in sharedPostDatas)
-            {
-                <p>@postData.PostID</p>
-            }
+                }
+            </div>
         </div>
     }
 }
@@ -92,7 +94,7 @@
             return;
         }
 
-        string? channelID = await Function.GetYtChID(url);
+        string? channelID = await Functions.GetYtChID(url);
 
         if (string.IsNullOrEmpty(channelID))
         {
@@ -103,7 +105,7 @@
 
         using HttpClient httpClient = GetHttpClient();
 
-        InitialData initialData = postDataService.GetInitialData(
+        InitialData initialData = await ytCmtyService.GetInitialData(
             httpClient: httpClient,
             channelID: channelID,
             cookies: GetCookies());
@@ -112,13 +114,13 @@
 
         sharedYTConfig = initialData.ConfigData;
 
-        List<PostData> latestPosts = postDataService.GetInitialPosts(
+        List<PostData> initialPosts = ytCmtyService.GetInitialPosts(
             jsonElement: initialData.JsonData,
             ytConfig: sharedYTConfig);
 
-        if (latestPosts.Any())
+        if (initialPosts.Any())
         {
-            foreach (PostData postData in latestPosts)
+            foreach (PostData postData in initialPosts)
             {
                 if (!sharedPostDatas.Any(n => n.PostID == postData.PostID))
                 {
@@ -133,7 +135,7 @@
     }
 
     /// <summary>
-    /// 取得更舊的社群貼文
+    /// 取得先前的社群貼文
     /// </summary>
     /// <returns>Task</returns>
     private async Task FetchOlderPosts()
@@ -142,14 +144,14 @@
         {
             isBtnFetchOlderPostsDisabled = true;
 
-            await AlertUtil.ShowErrorAlert("無法取得更舊的社群貼文。");
+            await AlertUtil.ShowErrorAlert("無法取得先前的社群貼文。");
 
             return;
         }
 
         using HttpClient httpClient = GetHttpClient();
 
-        List<PostData> oldertPosts = CustomFunction.GetOlderPosts(
+        List<PostData> oldertPosts = await ytCmtyService.GetEarlierPosts(
             httpClient: httpClient,
             ytConfig: sharedYTConfig,
             cookies: GetCookies(),

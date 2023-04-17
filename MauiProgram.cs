@@ -23,7 +23,7 @@ public static class MauiProgram
         builder.Logging.AddDebug();
 #endif
 
-        builder.Services.AddSingleton<PostDataService>();
+        builder.Services.AddSingleton<YTCmtyService>();
 
         return builder.Build();
     }
