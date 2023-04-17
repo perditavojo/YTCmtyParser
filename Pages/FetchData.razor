@@ -3,23 +3,23 @@
 @using YTCmtyParser.Data
 @inject WeatherForecastService ForecastService
 
-<h1>Weather forecast</h1>
+<h1>天氣預報</h1>
 
-<p>This component demonstrates fetching data from a service.</p>
+<p>這個元件展示了如何從一個服務中獲取資料。</p>
 
 @if (forecasts == null)
 {
-    <p><em>Loading...</em></p>
+    <p><em>載入中……</em></p>
 }
 else
 {
     <table class="table">
         <thead>
             <tr>
-                <th>Date</th>
-                <th>Temp. (C)</th>
-                <th>Temp. (F)</th>
-                <th>Summary</th>
+                <th>日期</th>
+                <th>溫度（C）</th>
+                <th>溫度（F）</th>
+                <th>摘要</th>
             </tr>
         </thead>
         <tbody>
