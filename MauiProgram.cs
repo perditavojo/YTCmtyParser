@@ -1,12 +1,10 @@
 ﻿using Microsoft.Extensions.Logging;
-using System.Runtime.Versioning;
 using YTCmtyParser.Data;
 
 namespace YTCmtyParser;
 
 public static class MauiProgram
 {
-    [SupportedOSPlatform("windows")]
     public static MauiApp CreateMauiApp()
     {
         var builder = MauiApp.CreateBuilder();
