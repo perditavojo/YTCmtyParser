@@ -42,7 +42,7 @@ public static class CustomFunction
 
         JsonElement? jsonElement = initialData.JsonData;
 
-        List<PostData> latestPosts = GetLatestPosts(
+        List<PostData> latestPosts = GetInitialPosts(
             jsonElement: jsonElement,
             ytConfig: configData);
 
@@ -55,6 +55,8 @@ public static class CustomFunction
                 while (!string.IsNullOrEmpty(configData?.Continuation))
                 {
                     List<PostData> oldertPosts = GetOlderPosts(
+                        httpClient: HttpClientUtil.GetHttpClient(
+                            userAgent: Sets.StringSet.UserAgent),
                         ytConfig: configData,
                         cookies: cookies,
                         referer: referer);
@@ -76,7 +78,7 @@ public static class CustomFunction
     /// <param name="jsonElement">JsonElement</param>
     /// <param name="ytConfig">YTConfig</param>
     /// <returns>List&lt;PostData&gt;</returns>
-    public static List<PostData> GetLatestPosts(JsonElement? jsonElement, YTConfig? ytConfig)
+    public static List<PostData> GetInitialPosts(JsonElement? jsonElement, YTConfig? ytConfig)
     {
         List<PostData> postDatas = new();
 
@@ -138,11 +140,13 @@ public static class CustomFunction
     /// <summary>
     /// 取得舊貼文
     /// </summary>
+    /// <param name="httpClient">HttpClient</param>
     /// <param name="ytConfig">YTConfig</param>
     /// <param name="cookies">字串，Cookies，預設值為空白</param>
     /// <param name="referer">字串，HTTP 參照位址，預設值為空白</param>
     /// <returns>List&lt;PostData&gt;</returns>
     public static List<PostData> GetOlderPosts(
+        HttpClient httpClient,
         YTConfig? ytConfig,
         string cookies = "",
         string referer = "")
@@ -150,8 +154,7 @@ public static class CustomFunction
         List<PostData> postDatas = new();
 
         JsonElement jsonElement = Function.GetJsonElement(
-            httpClient: HttpClientUtil.GetHttpClient(
-            userAgent: Sets.StringSet.UserAgent),
+            httpClient: httpClient,
             ytConfig: ytConfig,
             cookies: cookies,
             referer: referer);

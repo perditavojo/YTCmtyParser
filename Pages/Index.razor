@@ -1,7 +1,215 @@
 ﻿@page "/"
 
-<h1>您好，世界！</h1>
+@using System.Text.Json;
+@using YTApi.Commons.Models;
+@using YTApi.Commons;
+@using YTCmtyParser.Commons.Extensions;
+@using YTCmtyParser.Commons.Utils;
+@using YTCmtyParser.Commons;
+@using static YTCmtyParser.Commons.Utils.BrowserUtil;
+@using YTCmtyParser.Data;
+@using Microsoft.Maui.Controls;
+@inject IHttpClientFactory httpClientFactory;
+@inject PostDataService postDataService;
 
-歡迎來到您的新應用程式。
+<h1>獲取社群貼文</h1>
 
-<SurveyPrompt Title="Blazor 對您來說是怎麼樣的？" />
+<div class="card mb-2">
+    <div class="card-body">
+        <div class="col-12">
+            <div class="form-group form-inline mb-2">
+                <span for="iYtChUrl">目標 YouTube 頻道網址</span>
+                <input id="iYtChUrl" type="url" class="form-control" @bind="urlYtCh" placeholder="YouTube 頻道網址"></input>
+            </div>
+            <div class="form-group mb-2">
+                <button class="btn btn-primary"
+                        @onclick="() => FetchLatestPosts(urlYtCh)"
+                        disabled="@isBtnFetchLatestPostsDisabled">
+                    取得最新的社群貼文
+                </button>
+                &nbsp;
+                <button class="btn btn-outline-secondary"
+                        @onclick="FetchOlderPosts"
+                        disabled="@isBtnFetchOlderPostsDisabled">
+                    取得更舊的社群貼文
+                </button>
+                &nbsp;
+                <button class="btn btn-outline-danger"
+                        @onclick="Reset"
+                        disabled="@isBtnResetDisabled">
+                    重設
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@{
+    @if (sharedPostDatas.Any())
+    {
+        <div class="card">
+            <div class="card-body">
+                <div class="form-group">
+                    獲取的貼文數量：@sharedPostDatas.Count
+                </div>
+            </div>
+
+            @foreach (PostData postData in sharedPostDatas)
+            {
+                <p>@postData.PostID</p>
+            }
+        </div>
+    }
+}
+
+@code {
+    protected bool isBtnFetchLatestPostsDisabled { get; set; } = false;
+    protected bool isBtnFetchOlderPostsDisabled { get; set; } = true;
+    protected bool isBtnResetDisabled { get; set; } = true;
+
+    private YTConfig? sharedYTConfig;
+    private string sharedReferer = string.Empty;
+    private List<PostData> sharedPostDatas = new();
+
+    private string? urlYtCh = string.Empty;
+    private string urlDCWebhook = string.Empty;
+
+    private BrowserType browserType = BrowserType.GoogleChrome;
+    private string profileName = "";
+    private bool useCookies = false;
+
+    /// <summary>
+    /// 取得最新的社群貼文
+    /// </summary>
+    /// <param name="url">字串，YouTube 頻道網址</param>
+    /// <returns>Task</returns>
+    private async Task FetchLatestPosts(string url)
+    {
+        if (string.IsNullOrEmpty(url))
+        {
+            await AlertUtil.ShowErrorAlert("請輸入 YouTube 頻道網址。");
+
+            return;
+        }
+
+        string? channelID = await Function.GetYtChID(url);
+
+        if (string.IsNullOrEmpty(channelID))
+        {
+            await AlertUtil.ShowErrorAlert("無法取得 YouTube 頻道的 ID，請確認您輸入的是正確的YouTube 頻道網址。");
+
+            return;
+        }
+
+        using HttpClient httpClient = GetHttpClient();
+
+        InitialData initialData = postDataService.GetInitialData(
+            httpClient: httpClient,
+            channelID: channelID,
+            cookies: GetCookies());
+
+        sharedReferer = initialData.Referer ?? string.Empty;
+
+        sharedYTConfig = initialData.ConfigData;
+
+        List<PostData> latestPosts = postDataService.GetInitialPosts(
+            jsonElement: initialData.JsonData,
+            ytConfig: sharedYTConfig);
+
+        if (latestPosts.Any())
+        {
+            foreach (PostData postData in latestPosts)
+            {
+                if (!sharedPostDatas.Any(n => n.PostID == postData.PostID))
+                {
+                    sharedPostDatas.Add(postData);
+                }
+            }
+
+            isBtnFetchLatestPostsDisabled = true;
+            isBtnFetchOlderPostsDisabled = false;
+            isBtnResetDisabled = false;
+        }
+    }
+
+    /// <summary>
+    /// 取得更舊的社群貼文
+    /// </summary>
+    /// <returns>Task</returns>
+    private async Task FetchOlderPosts()
+    {
+        if (string.IsNullOrEmpty(sharedYTConfig?.Continuation))
+        {
+            isBtnFetchOlderPostsDisabled = true;
+
+            await AlertUtil.ShowErrorAlert("無法取得更舊的社群貼文。");
+
+            return;
+        }
+
+        using HttpClient httpClient = GetHttpClient();
+
+        List<PostData> oldertPosts = CustomFunction.GetOlderPosts(
+            httpClient: httpClient,
+            ytConfig: sharedYTConfig,
+            cookies: GetCookies(),
+            referer: sharedReferer);
+
+        if (oldertPosts.Any())
+        {
+            foreach (PostData postData in oldertPosts)
+            {
+                if (!sharedPostDatas.Any(n => n.PostID == postData.PostID))
+                {
+                    sharedPostDatas.Add(postData);
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// 重設
+    /// </summary>
+    private void Reset()
+    {
+        sharedYTConfig = null;
+        sharedReferer = string.Empty;
+        sharedPostDatas.Clear();
+
+        isBtnFetchLatestPostsDisabled = false;
+        isBtnFetchOlderPostsDisabled = true;
+        isBtnResetDisabled = true;
+    }
+
+    /// <summary>
+    /// 取得 HttpClient
+    /// </summary>
+    /// <returns>HttpClient</returns>
+    private HttpClient GetHttpClient()
+    {
+        return HttpClientUtil.GetHttpClient(
+            httpClientFactory: httpClientFactory,
+            userAgent: Commons.Sets.StringSet.UserAgent);
+    }
+
+    /// <summary>
+    /// 取得 Cookies 字串
+    /// </summary>
+    /// <returns>字串</returns>
+    private string GetCookies()
+    {
+        string cookies = string.Empty;
+
+        if (useCookies)
+        {
+            List<BrowserUtil.Cookie> listCookies = BrowserUtil.GetCookies(
+                browser: browserType,
+                profileName: profileName,
+                hostKey: ".youtube.com");
+
+            cookies = string.Join(";", listCookies.Select(n => $"{n.Name}={n.Value}"));
+        }
+
+        return cookies;
+    }
+}

@@ -85,12 +85,11 @@
     <ItemGroup>
         <PackageReference Include="AngleSharp" Version="1.0.1" />
         <PackageReference Include="BouncyCastle.Cryptography" Version="2.1.1" />
+        <PackageReference Include="discord-webhook-client" Version="3.1.0" />
+        <PackageReference Include="Microsoft.Data.Sqlite" Version="7.0.5" />
         <PackageReference Include="Microsoft.Extensions.Http" Version="7.0.0" />
         <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="7.0.0" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="NewFolder\" />
+        <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="7.0.1" />
     </ItemGroup>
 
 </Project>

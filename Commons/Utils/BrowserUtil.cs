@@ -15,9 +15,9 @@ namespace YTCmtyParser.Commons.Utils;
 public class BrowserUtil
 {
     /// <summary>
-    /// 網頁瀏覽器
+    /// 網頁瀏覽器類型
     /// </summary>
-    public enum Browser
+    public enum BrowserType
     {
         /// <summary>
         /// Brave
@@ -61,7 +61,7 @@ public class BrowserUtil
     /// <param name="hostKey">字串，主機鍵值</param>
     /// <returns>List&lt;Cookie&gt;</returns>
     public static List<Cookie> GetCookies(
-        Browser browser,
+        BrowserType browser,
         string profileName,
         string hostKey)
     {
@@ -77,7 +77,7 @@ public class BrowserUtil
 
         string cookieFilePath = string.Empty;
 
-        if (browser == Browser.MozillaFirefox)
+        if (browser == BrowserType.MozillaFirefox)
         {
             cookieFilePath = isCustomProfilePath ?
                 profileName :
@@ -139,18 +139,18 @@ public class BrowserUtil
     /// </summary>
     /// <param name="browser">Browser</param>
     /// <returns>字串</returns>
-    public static string GetPartialPath(Browser browser)
+    public static string GetPartialPath(BrowserType browser)
     {
         return browser switch
         {
-            Browser.Brave => @"BraveSoftware\Brave-Browser",
-            Browser.GoogleChrome => @"Google\Chrome",
-            Browser.Chromium => @"Chromium",
-            Browser.MicrosoftEdge => @"Microsoft\Edge",
-            Browser.Opera => @"Opera Software\Opera Stable",
-            Browser.OperaGX => @"Opera Software\Opera GX Stable",
-            Browser.Vivaldi => "Vivaldi",
-            Browser.MozillaFirefox => @"Mozilla\Firefox\Profiles",
+            BrowserType.Brave => @"BraveSoftware\Brave-Browser",
+            BrowserType.GoogleChrome => @"Google\Chrome",
+            BrowserType.Chromium => @"Chromium",
+            BrowserType.MicrosoftEdge => @"Microsoft\Edge",
+            BrowserType.Opera => @"Opera Software\Opera Stable",
+            BrowserType.OperaGX => @"Opera Software\Opera GX Stable",
+            BrowserType.Vivaldi => "Vivaldi",
+            BrowserType.MozillaFirefox => @"Mozilla\Firefox\Profiles",
             _ => @"Google\Chrome"
         };
     }
@@ -163,7 +163,7 @@ public class BrowserUtil
     /// <param name="hostKey">字串，主機鍵值</param>
     /// <returns>List&lt;Cookie&gt;</returns>
     private static List<Cookie> QuerySQLiteDB(
-        Browser browser,
+        BrowserType browser,
         string cookieFilePath,
         string hostKey)
     {
@@ -176,12 +176,12 @@ public class BrowserUtil
 
             string rawTSQL = browser switch
             {
-                Browser.MozillaFirefox => "SELECT [name], [value], [host] FROM [moz_cookies]",
+                BrowserType.MozillaFirefox => "SELECT [name], [value], [host] FROM [moz_cookies]",
                 _ => "SELECT [name], [encrypted_value], [host_key] FROM [cookies]"
             };
             string rawWhereClauseTSQL = browser switch
             {
-                Browser.MozillaFirefox => $" WHERE [host] = '{hostKey}'",
+                BrowserType.MozillaFirefox => $" WHERE [host] = '{hostKey}'",
                 //Browser.MozillaFirefox =>  $" WHERE [host] = LIKE '%{hostKey}%'",
                 _ => $" WHERE [host_key] = '{hostKey}'"
                 //_ => $" WHERE [host_key] LIKE '%{hostKey}%'"
@@ -200,7 +200,7 @@ public class BrowserUtil
             {
                 byte[] key = browser switch
                 {
-                    Browser.MozillaFirefox => Array.Empty<byte>(),
+                    BrowserType.MozillaFirefox => Array.Empty<byte>(),
                     _ => AesGcm256.GetKey(browser)
                 };
 
@@ -212,7 +212,7 @@ public class BrowserUtil
 
                         switch (browser)
                         {
-                            case Browser.MozillaFirefox:
+                            case BrowserType.MozillaFirefox:
                                 value = sqliteDataReader.GetString(1);
 
                                 break;
@@ -305,7 +305,7 @@ public class BrowserUtil
         /// </summary>
         /// <param name="browser">Browser</param>
         /// <returns>字串</returns>
-        public static byte[] GetKey(Browser browser)
+        public static byte[] GetKey(BrowserType browser)
         {
             //string sR = string.Empty;
             //string appdata = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
