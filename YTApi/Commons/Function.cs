@@ -2,6 +2,7 @@
 using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
+using System.Diagnostics;
 using System.Net;
 using System.Text;
 using System.Text.Json;
@@ -55,8 +56,8 @@ public static class Function
     /// <param name="cookies">字串，Cookies</param>
     /// <returns>InitialData</returns>
     public static InitialData GetInitialData(
-    HttpClient httpClient,
-    string channelID,
+        HttpClient httpClient,
+        string channelID,
         string cookies)
     {
         InitialData initialData = new();
@@ -316,8 +317,8 @@ public static class Function
     /// <returns>JsonElement</returns>
     public static JsonElement GetJsonElement(
         HttpClient httpClient,
-    YTConfig? ytConfig,
-    string cookies,
+        YTConfig? ytConfig,
+        string cookies,
         string referer)
     {
         JsonElement jsonElement = new();
@@ -362,7 +363,7 @@ public static class Function
                     $"接收到的內容：{Environment.NewLine}" +
                     $"{receivedJsonContent}{Environment.NewLine}";
 
-                Console.WriteLine(errorMessage);
+                Debug.WriteLine(errorMessage);
             }
         }
 
