@@ -1,7 +1,24 @@
 ﻿@page "/setting"
+@using CommunityToolkit.Maui.Alerts;
 
 <h1>設定</h1>
 
-@code {
+<button @onclick="async () => await ShowToast(mesage)">點我</button>
 
+@code {
+    private string mesage = "測試吐司訊息";
+
+
+    /// <summary>
+    /// 顯示 Toast
+    /// </summary>
+    /// <param name="message">字串，訊息</param>
+    /// <param name="ct">CancellationToken</param>
+    /// <returns>Task</returns>
+    public async Task ShowToast(
+        string message,
+        CancellationToken ct = default)
+    {
+        await Toast.Make(message).Show(ct);
+    }
 }

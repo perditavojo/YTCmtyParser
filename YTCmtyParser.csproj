@@ -93,6 +93,7 @@
     <ItemGroup>
         <PackageReference Include="AngleSharp" Version="1.0.1" />
         <PackageReference Include="BouncyCastle.Cryptography" Version="2.2.0" />
+        <PackageReference Include="CommunityToolkit.Maui" Version="5.1.0" />
         <PackageReference Include="discord-webhook-client" Version="3.1.0" />
         <PackageReference Include="Microsoft.Data.Sqlite" Version="7.0.5" />
         <PackageReference Include="Microsoft.Extensions.Http" Version="7.0.0" />

@@ -1,6 +1,9 @@
 ﻿@page "/"
 
 @using System.Text.Json;
+@using CommunityToolkit.Maui.Alerts;
+@using CommunityToolkit.Maui.Storage;
+@using System.Text;
 @using YTApi.Commons.Models;
 @using YTApi.Commons;
 @using YTCmtyParser.Commons.Extensions;
@@ -56,8 +59,14 @@
                     重設
                 </button>
             </div>
-        </div>
-        <div class="col-12">
+            <div class="form-group mb-2">
+                <button class="btn btn-outline-primary"
+                        @onclick="() => ImportJsonFile()">
+                    <span class="oi oi-file" aria-hidden="true"></span>
+                    &nbsp;
+                    匯入 JSON 檔案
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -67,7 +76,14 @@
         <div class="col-12">
             <div class="card mb-2">
                 <div class="card-body">
-                    已獲取的貼文數量：@sharedPostDatas.Count｜已選取的貼文數量：@sharedPostDatas.Where(n => n.IsChecked).Count()
+                    已獲取的貼文數量：@sharedPostDatas.Count｜
+                    已選取的貼文數量：@sharedPostDatas.Where(n => n.IsChecked).Count()｜
+                    <button class="btn btn-outline-success"
+                        @onclick="() => ExportJsonFile()">
+                        <span class="oi oi-file" aria-hidden="true"></span>
+                        &nbsp;
+                        匯出 JSON 檔案
+                    </button>
                 </div>
             </div>
             <div class="form-group mb-2">
@@ -92,7 +108,7 @@
                                             <input type="checkbox" class="checkbox"
                                            @bind="@postData.IsChecked"
                                            @bind:event="oninput"
-                                           @onchange="(evt) => { DoPostDataCheckboxClicked(postData.PostID, evt.Value); }" />
+                                           @onchange="(evt) => DoPostDataCheckboxClicked(postData.PostID, evt.Value)" />
                                             &nbsp;
                                             [@whoCanSee]
                                         </div>
@@ -413,6 +429,95 @@
         isBtnFetchOlderPostsDisabled = true;
         isBtnFetchRestPostsDisabled = true;
         isBtnResetDisabled = true;
+    }
+
+    /// <summary>
+    /// 匯入 JSON 檔案
+    /// </summary>
+    /// <param name="ct">CancellationToken</param>
+    /// <returns>Task</returns>
+    async Task ImportJsonFile(CancellationToken ct = default)
+    {
+        try
+        {
+            FileResult? result = await FilePicker.Default.PickAsync();
+
+            if (result != null)
+            {
+                if (result.FileName.EndsWith("json", StringComparison.OrdinalIgnoreCase))
+                {
+                    using Stream stream = await result.OpenReadAsync();
+
+                    ValueTask<ExportData?> deserializeObject = JsonSerializer
+                        .DeserializeAsync<ExportData?>(
+                            utf8Json: stream,
+                            cancellationToken: ct);
+
+                    ExportData? exportData = deserializeObject.Result;
+
+                    if (exportData != null)
+                    {
+                        urlYtCh = exportData.Url;
+
+                        List<PostData>? postDatas = exportData.PostDatas;
+
+                        if (postDatas != null)
+                        {
+                            sharedPostDatas.Clear();
+                            sharedPostDatas.AddRange(postDatas);
+                        }
+
+                        await AlertUtil.ShowAlert("資訊", "已匯入 JSON 檔案。");
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            await AlertUtil.ShowErrorAlert("錯誤", ex.ToString());
+        }
+    }
+
+    /// <summary>
+    /// 匯出 JSON 檔案
+    /// </summary>
+    /// <param name="ct">CancellationToken</param>
+    /// <returns>Task</returns>
+    async Task ExportJsonFile(CancellationToken ct = default)
+    {
+        if (sharedPostDatas.Any())
+        {
+            ExportData exportData = new()
+                {
+                    Url = urlYtCh,
+                    PostDatas = sharedPostDatas
+                };
+
+            string jsonContent = exportData.ToJsonString();
+
+            byte[] bytes = Encoding.UTF8.GetBytes(jsonContent);
+
+            using MemoryStream memoryStream = new(bytes);
+
+            FileSaverResult fileSaverResult = await FileSaver.Default
+                .SaveAsync(
+                    fileName: $"YouTube_Community_Posts_{DateTime.Now:yyyyMMddHHmmss}.json",
+                    stream: memoryStream,
+                    cancellationToken: ct);
+
+            if (fileSaverResult.IsSuccessful)
+            {
+                await AlertUtil.ShowAlert("資訊", $"檔案已儲存至：{fileSaverResult.FilePath}");
+            }
+            else
+            {
+                await AlertUtil.ShowErrorAlert($"匯出 JSON 檔案失敗，錯誤訊息：{fileSaverResult.Exception.Message}");
+            }
+        }
+        else
+        {
+            await AlertUtil.ShowErrorAlert($" 匯出 JSON 檔失敗，請先獲取 YouTube 社群貼文。");
+        }
     }
 
     /// <summary>
