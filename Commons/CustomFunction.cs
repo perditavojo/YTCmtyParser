@@ -90,13 +90,13 @@ public static class CustomFunction
                 JsonElement? itemSectionRendererContents = JsonParser.GetItemSectionRendererContents(jsonElement: content);
                 JsonElement.ArrayEnumerator? itemSectionRendererContentsArray = itemSectionRendererContents?.GetArrayEnumerator();
 
+                // 設定上一個梯次貼文用的 continuation。
+                Functions.SetContinuation(
+                    arrayEnumerator: itemSectionRendererContentsArray,
+                    ytConfig: ytConfig);
+
                 if (itemSectionRendererContentsArray != null)
                 {
-                    // 設定上一個梯次貼文用的 continuation。
-                    Functions.SetContinuation(
-                        arrayEnumerator: itemSectionRendererContentsArray,
-                        ytConfig: ytConfig);
-
                     // 取得並解析最新的貼文資料。
                     IEnumerable<JsonElement>? backstagePostThreadRenderers = itemSectionRendererContentsArray
                         ?.Where(n => n.Get("backstagePostThreadRenderer") != null);
@@ -169,13 +169,13 @@ public static class CustomFunction
                         jsonElement: onResponseReceivedEndpoint);
                 JsonElement.ArrayEnumerator? continuationItemsArray = continuationItems?.GetArrayEnumerator();
 
+                // 設定上一個梯次貼文用的 continuation。
+                Functions.SetContinuation(
+                    arrayEnumerator: continuationItemsArray,
+                    ytConfig: ytConfig);
+
                 if (continuationItemsArray != null)
                 {
-                    // 設定上一個梯次貼文用的 continuation。
-                    Functions.SetContinuation(
-                        arrayEnumerator: continuationItemsArray,
-                        ytConfig: ytConfig);
-
                     // 取得並解析貼文資料。
                     IEnumerable<JsonElement>? backstagePostThreadRenderers = continuationItemsArray
                         ?.Where(n => n.Get("backstagePostThreadRenderer") != null);

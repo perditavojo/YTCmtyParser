@@ -28,11 +28,11 @@
             </div>
             <div class="form-group mb-2">
                 <button class="btn btn-primary"
-                        @onclick="() => FetchLatestPosts(urlYtCh)"
+                        @onclick="() => FetchInitialPosts(urlYtCh)"
                         disabled="@isBtnFetchLatestPostsDisabled">
                     <span class="oi oi-data-transfer-download" aria-hidden="true"></span>
                     &nbsp;
-                    取得社群貼文
+                    獲取最新的社群貼文
                 </button>
                 &nbsp;
                 <button class="btn btn-outline-secondary"
@@ -40,7 +40,7 @@
                         disabled="@isBtnFetchOlderPostsDisabled">
                     <span class="oi oi-data-transfer-download" aria-hidden="true"></span>
                     &nbsp;
-                    取得先前的社群貼文
+                    獲取先前的社群貼文
                 </button>
                 &nbsp;
                 <button class="btn btn-outline-warning"
@@ -48,7 +48,15 @@
                         disabled="@isBtnFetchRestPostsDisabled">
                     <span class="oi oi-data-transfer-download" aria-hidden="true"></span>
                     &nbsp;
-                    取得先前的全部社群貼文
+                    獲取全部的社群貼文
+                </button>
+            </div>
+            <div class="form-group mb-2">
+                <button class="btn btn-outline-primary"
+                        @onclick="() => ImportJsonFile()">
+                    <span class="oi oi-file" aria-hidden="true"></span>
+                    &nbsp;
+                    載入檔案
                 </button>
                 &nbsp;
                 <button class="btn btn-outline-danger"
@@ -57,14 +65,6 @@
                     <span class="oi oi-delete" aria-hidden="true"></span>
                     &nbsp;
                     重設
-                </button>
-            </div>
-            <div class="form-group mb-2">
-                <button class="btn btn-outline-primary"
-                        @onclick="() => ImportJsonFile()">
-                    <span class="oi oi-file" aria-hidden="true"></span>
-                    &nbsp;
-                    匯入 JSON 檔案
                 </button>
             </div>
         </div>
@@ -82,7 +82,7 @@
                         @onclick="() => ExportJsonFile()">
                         <span class="oi oi-file" aria-hidden="true"></span>
                         &nbsp;
-                        匯出 JSON 檔案
+                        匯出檔案
                     </button>
                 </div>
             </div>
@@ -287,104 +287,85 @@
     }
 
     /// <summary>
-    /// 取得最新的社群貼文
+    /// 獲取初始的社群貼文
     /// </summary>
     /// <param name="url">字串，YouTube 頻道網址</param>
     /// <returns>Task</returns>
-    private async Task FetchLatestPosts(string url)
+    private async Task FetchInitialPosts(string url)
     {
-        if (string.IsNullOrEmpty(url))
+        try
         {
-            await AlertUtil.ShowErrorAlert("請輸入 YouTube 頻道網址。");
-
-            return;
-        }
-
-        string? channelID = await Functions.GetYtChID(url);
-
-        if (string.IsNullOrEmpty(channelID))
-        {
-            await AlertUtil.ShowErrorAlert("無法取得 YouTube 頻道的 ID，請確認您輸入的是正確的YouTube 頻道網址。");
-
-            return;
-        }
-
-        using HttpClient httpClient = GetHttpClient();
-
-        InitialData initialData = await ytCmtyService.GetInitialData(
-            httpClient: httpClient,
-            channelID: channelID,
-            cookies: GetCookies());
-
-        sharedReferer = initialData.Referer ?? string.Empty;
-
-        sharedYTConfig = initialData.ConfigData;
-
-        List<PostData> initialPosts = ytCmtyService.GetInitialPosts(
-            jsonElement: initialData.JsonData,
-            ytConfig: sharedYTConfig);
-
-        if (initialPosts.Any())
-        {
-            foreach (PostData postData in initialPosts)
+            if (string.IsNullOrEmpty(url))
             {
-                if (!sharedPostDatas.Any(n => n.PostID == postData.PostID))
-                {
-                    sharedPostDatas.Add(postData);
-                }
+                await AlertUtil.ShowErrorAlert("請輸入 YouTube 頻道網址。");
+
+                return;
             }
 
-            isBtnFetchLatestPostsDisabled = true;
-            isBtnFetchOlderPostsDisabled = false;
-            isBtnFetchRestPostsDisabled = false;
-            isBtnResetDisabled = false;
+            string? channelID = await Functions.GetYtChID(url);
+
+            if (string.IsNullOrEmpty(channelID))
+            {
+                await AlertUtil.ShowErrorAlert("無法取得 YouTube 頻道的 ID，請確認您輸入的是正確的YouTube 頻道網址。");
+
+                return;
+            }
+
+            using HttpClient httpClient = GetHttpClient();
+
+            InitialData initialData = await ytCmtyService.GetInitialData(
+                httpClient: httpClient,
+                channelID: channelID,
+                cookies: GetCookies());
+
+            sharedReferer = initialData.Referer ?? string.Empty;
+
+            sharedYTConfig = initialData.ConfigData;
+
+            List<PostData> initialPosts = ytCmtyService.GetInitialPosts(
+                jsonElement: initialData.JsonData,
+                ytConfig: sharedYTConfig);
+
+            if (initialPosts.Any())
+            {
+                foreach (PostData postData in initialPosts)
+                {
+                    if (!sharedPostDatas.Any(n => n.PostID == postData.PostID))
+                    {
+                        sharedPostDatas.Add(postData);
+                    }
+                }
+
+                isBtnFetchLatestPostsDisabled = true;
+                isBtnFetchOlderPostsDisabled = false;
+                isBtnFetchRestPostsDisabled = false;
+                isBtnResetDisabled = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            await AlertUtil.ShowErrorAlert("錯誤", ex.ToString());
         }
     }
 
     /// <summary>
-    /// 取得先前的社群貼文
+    /// 獲取先前的社群貼文
     /// </summary>
     /// <returns>Task</returns>
     private async Task FetchOlderPosts()
     {
-        if (string.IsNullOrEmpty(sharedYTConfig?.Continuation))
+        try
         {
-            isBtnFetchOlderPostsDisabled = true;
-            isBtnFetchRestPostsDisabled = true;
-
-            await AlertUtil.ShowErrorAlert("無法取得先前的社群貼文。");
-
-            return;
-        }
-
-        using HttpClient httpClient = GetHttpClient();
-
-        List<PostData> oldertPosts = await ytCmtyService.GetEarlierPosts(
-            httpClient: httpClient,
-            ytConfig: sharedYTConfig,
-            cookies: GetCookies(),
-            referer: sharedReferer);
-
-        if (oldertPosts.Any())
-        {
-            foreach (PostData postData in oldertPosts)
+            if (string.IsNullOrEmpty(sharedYTConfig?.Continuation))
             {
-                if (!sharedPostDatas.Any(n => n.PostID == postData.PostID))
-                {
-                    sharedPostDatas.Add(postData);
-                }
-            }
-        }
-    }
+                isBtnFetchOlderPostsDisabled = true;
+                isBtnFetchRestPostsDisabled = true;
 
-    /// <summary>
-    /// 取得先前的全部社群貼文
-    /// </summary>
-    /// <returns>Task</returns>
-    private async Task FetchRestPosts()
-    {
-        while (!string.IsNullOrEmpty(sharedYTConfig?.Continuation))
-        {
+                await AlertUtil.ShowErrorAlert("無法取得先前的社群貼文。");
+
+                return;
+            }
+
             using HttpClient httpClient = GetHttpClient();
 
             List<PostData> oldertPosts = await ytCmtyService.GetEarlierPosts(
@@ -404,15 +385,55 @@
                 }
             }
         }
-
-        if (string.IsNullOrEmpty(sharedYTConfig?.Continuation))
+        catch (Exception ex)
         {
-            isBtnFetchOlderPostsDisabled = true;
-            isBtnFetchRestPostsDisabled = true;
+            await AlertUtil.ShowErrorAlert("錯誤", ex.ToString());
+        }
+    }
 
-            await AlertUtil.ShowAlert("資訊", "已取得先前的全部社群貼文。");
+    /// <summary>
+    /// 獲取先前的全部社群貼文
+    /// </summary>
+    /// <returns>Task</returns>
+    private async Task FetchRestPosts()
+    {
+        try
+        {
+            while (!string.IsNullOrEmpty(sharedYTConfig?.Continuation))
+            {
+                using HttpClient httpClient = GetHttpClient();
 
-            return;
+                List<PostData> oldertPosts = await ytCmtyService.GetEarlierPosts(
+                    httpClient: httpClient,
+                    ytConfig: sharedYTConfig,
+                    cookies: GetCookies(),
+                    referer: sharedReferer);
+
+                if (oldertPosts.Any())
+                {
+                    foreach (PostData postData in oldertPosts)
+                    {
+                        if (!sharedPostDatas.Any(n => n.PostID == postData.PostID))
+                        {
+                            sharedPostDatas.Add(postData);
+                        }
+                    }
+                }
+            }
+
+            if (string.IsNullOrEmpty(sharedYTConfig?.Continuation))
+            {
+                isBtnFetchOlderPostsDisabled = true;
+                isBtnFetchRestPostsDisabled = true;
+
+                await AlertUtil.ShowAlert("資訊", "已取得先前的全部社群貼文。");
+
+                return;
+            }
+        }
+        catch (Exception ex)
+        {
+            await AlertUtil.ShowErrorAlert("錯誤", ex.ToString());
         }
     }
 
@@ -436,11 +457,30 @@
     /// </summary>
     /// <param name="ct">CancellationToken</param>
     /// <returns>Task</returns>
-    async Task ImportJsonFile(CancellationToken ct = default)
+    private async Task ImportJsonFile(CancellationToken ct = default)
     {
         try
         {
-            FileResult? result = await FilePicker.Default.PickAsync();
+            Dictionary<DevicePlatform, IEnumerable<string>> fileTypes = new()
+            {
+                { DevicePlatform.iOS, new string[] { "json" } },
+                { DevicePlatform.WinUI, new string[] { "json" } },
+                { DevicePlatform.Tizen, new string[] { "json" } },
+                { DevicePlatform.tvOS, new string[] { "json" } },
+                { DevicePlatform.MacCatalyst, new string[] { "json" } },
+                { DevicePlatform.macOS, new string[] { "json" } },
+                { DevicePlatform.watchOS, new string[] { "json" } },
+                { DevicePlatform.Unknown, new string[] { "json" } },
+                { DevicePlatform.Android, new string[] { "json" } }
+            };
+
+            PickOptions pickOptions = new PickOptions()
+                {
+                    FileTypes = new FilePickerFileType(fileTypes),
+                    PickerTitle = "請選擇 JSON 檔案"
+                };
+
+            FileResult? result = await FilePicker.Default.PickAsync(pickOptions);
 
             if (result != null)
             {
@@ -448,27 +488,27 @@
                 {
                     using Stream stream = await result.OpenReadAsync();
 
-                    ValueTask<ExportData?> deserializeObject = JsonSerializer
+                    ExportData? exportData = await JsonSerializer
                         .DeserializeAsync<ExportData?>(
                             utf8Json: stream,
                             cancellationToken: ct);
-
-                    ExportData? exportData = deserializeObject.Result;
 
                     if (exportData != null)
                     {
                         urlYtCh = exportData.Url;
 
-                        List<PostData>? postDatas = exportData.PostDatas;
-
-                        if (postDatas != null)
+                        if (exportData.PostDatas != null)
                         {
                             sharedPostDatas.Clear();
-                            sharedPostDatas.AddRange(postDatas);
+                            sharedPostDatas.AddRange(exportData.PostDatas);
                         }
 
                         await AlertUtil.ShowAlert("資訊", "已匯入 JSON 檔案。");
                     }
+                }
+                else
+                {
+                    await AlertUtil.ShowWarningAlert("注意", "請選擇 JSON 檔案。");
                 }
             }
         }
@@ -483,14 +523,26 @@
     /// </summary>
     /// <param name="ct">CancellationToken</param>
     /// <returns>Task</returns>
-    async Task ExportJsonFile(CancellationToken ct = default)
+    private async Task ExportJsonFile(CancellationToken ct = default)
     {
-        if (sharedPostDatas.Any())
+        try
         {
+            if (!sharedPostDatas.Any())
+            {
+                await AlertUtil.ShowErrorAlert($" 匯出 JSON 檔失敗，請先獲取 YouTube 社群貼文。");
+
+                return;
+            }
+
+            List<PostData> postDatas = (sharedPostDatas.Any(n => n.IsChecked) ?
+                sharedPostDatas.Where(n => n.IsChecked) :
+                sharedPostDatas)
+                .ToList();
+
             ExportData exportData = new()
                 {
                     Url = urlYtCh,
-                    PostDatas = sharedPostDatas
+                    PostDatas = postDatas
                 };
 
             string jsonContent = exportData.ToJsonString();
@@ -514,9 +566,9 @@
                 await AlertUtil.ShowErrorAlert($"匯出 JSON 檔案失敗，錯誤訊息：{fileSaverResult.Exception.Message}");
             }
         }
-        else
+        catch (Exception ex)
         {
-            await AlertUtil.ShowErrorAlert($" 匯出 JSON 檔失敗，請先獲取 YouTube 社群貼文。");
+            await AlertUtil.ShowErrorAlert("錯誤", ex.ToString());
         }
     }
 
