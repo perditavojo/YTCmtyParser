@@ -40,6 +40,14 @@
                     取得先前的社群貼文
                 </button>
                 &nbsp;
+                <button class="btn btn-outline-warning"
+                        @onclick="FetchRestPosts"
+                        disabled="@isBtnFetchRestPostsDisabled">
+                    <span class="oi oi-data-transfer-download" aria-hidden="true"></span>
+                    &nbsp;
+                    取得先前的全部社群貼文
+                </button>
+                &nbsp;
                 <button class="btn btn-outline-danger"
                         @onclick="Reset"
                         disabled="@isBtnResetDisabled">
@@ -64,7 +72,11 @@
             </div>
             <div class="form-group mb-2">
                 <label for="cbSelectAll">全選貼文</label>&nbsp;
-                <input id="cbSelectAll" type="checkbox" class="checkbox" @onchange="(evt) => { DoCheckAllClicked(evt.Value); }" />
+                <input id="cbSelectAll" type="checkbox"
+                   class="checkbox"
+                   @bind="isCBCheckAllChecked"
+                   @bind:event="oninput"
+                   @onchange="(evt) => { DoCheckAllClicked(evt.Value); }" />
             </div>
             <div>
                 @foreach (PostData postData in sharedPostDatas)
@@ -195,18 +207,24 @@
 }
 
 @code {
-    protected bool isCheckedAll { get; set; } = false;
+    // 按鈕的啟用進用控制。
     protected bool isBtnFetchLatestPostsDisabled { get; set; } = false;
     protected bool isBtnFetchOlderPostsDisabled { get; set; } = true;
+    protected bool isBtnFetchRestPostsDisabled { get; set; } = true;
     protected bool isBtnResetDisabled { get; set; } = true;
+    // Checkbox 的勾選控制。
+    protected bool isCBCheckAllChecked { get; set; }
 
+    // 共用變數。
     private YTConfig? sharedYTConfig;
     private string sharedReferer = string.Empty;
     private List<PostData> sharedPostDatas = new();
 
+    // 使用者輸入的值。
     private string? urlYtCh = string.Empty;
     private string urlDCWebhook = string.Empty;
 
+    // 網頁瀏覽器 Cookies。
     private BrowserType browserType = BrowserType.GoogleChrome;
     private string profileName = "";
     private bool useCookies = false;
@@ -244,6 +262,11 @@
         if (postData != null)
         {
             postData.IsChecked = isChecked;
+
+            if (isCBCheckAllChecked && isChecked == false)
+            {
+                isCBCheckAllChecked = false;
+            }
         }
     }
 
@@ -297,6 +320,7 @@
 
             isBtnFetchLatestPostsDisabled = true;
             isBtnFetchOlderPostsDisabled = false;
+            isBtnFetchRestPostsDisabled = false;
             isBtnResetDisabled = false;
         }
     }
@@ -310,6 +334,7 @@
         if (string.IsNullOrEmpty(sharedYTConfig?.Continuation))
         {
             isBtnFetchOlderPostsDisabled = true;
+            isBtnFetchRestPostsDisabled = true;
 
             await AlertUtil.ShowErrorAlert("無法取得先前的社群貼文。");
 
@@ -337,6 +362,45 @@
     }
 
     /// <summary>
+    /// 取得先前的全部社群貼文
+    /// </summary>
+    /// <returns>Task</returns>
+    private async Task FetchRestPosts()
+    {
+        while (!string.IsNullOrEmpty(sharedYTConfig?.Continuation))
+        {
+            using HttpClient httpClient = GetHttpClient();
+
+            List<PostData> oldertPosts = await ytCmtyService.GetEarlierPosts(
+                httpClient: httpClient,
+                ytConfig: sharedYTConfig,
+                cookies: GetCookies(),
+                referer: sharedReferer);
+
+            if (oldertPosts.Any())
+            {
+                foreach (PostData postData in oldertPosts)
+                {
+                    if (!sharedPostDatas.Any(n => n.PostID == postData.PostID))
+                    {
+                        sharedPostDatas.Add(postData);
+                    }
+                }
+            }
+        }
+
+        if (string.IsNullOrEmpty(sharedYTConfig?.Continuation))
+        {
+            isBtnFetchOlderPostsDisabled = true;
+            isBtnFetchRestPostsDisabled = true;
+
+            await AlertUtil.ShowAlert("資訊", "已取得先前的全部社群貼文。");
+
+            return;
+        }
+    }
+
+    /// <summary>
     /// 重設
     /// </summary>
     private void Reset()
@@ -347,6 +411,7 @@
 
         isBtnFetchLatestPostsDisabled = false;
         isBtnFetchOlderPostsDisabled = true;
+        isBtnFetchRestPostsDisabled = true;
         isBtnResetDisabled = true;
     }
 
