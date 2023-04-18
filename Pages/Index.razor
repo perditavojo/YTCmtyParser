@@ -13,73 +13,113 @@
 @inject YTCmtyService ytCmtyService;
 
 <h1>獲取 YouTube 社群貼文</h1>
-
 <div class="card mb-2">
     <div class="card-body">
         <div class="col-12">
             <div class="form-group form-inline mb-2">
                 <span for="iYtChUrl">目標 YouTube 頻道網址</span>
-                <input id="iYtChUrl" type="url" class="form-control" @bind="urlYtCh" placeholder="YouTube 頻道網址"></input>
+                <input id="iYtChUrl" type="url"
+                       class="form-control"
+                       @bind="urlYtCh"
+                       placeholder="YouTube 頻道網址"></input>
             </div>
             <div class="form-group mb-2">
                 <button class="btn btn-primary"
                         @onclick="() => FetchLatestPosts(urlYtCh)"
                         disabled="@isBtnFetchLatestPostsDisabled">
+                    <span class="oi oi-data-transfer-download" aria-hidden="true"></span>
+                    &nbsp;
                     取得社群貼文
                 </button>
                 &nbsp;
                 <button class="btn btn-outline-secondary"
                         @onclick="FetchOlderPosts"
                         disabled="@isBtnFetchOlderPostsDisabled">
+                    <span class="oi oi-data-transfer-download" aria-hidden="true"></span>
+                    &nbsp;
                     取得先前的社群貼文
                 </button>
                 &nbsp;
                 <button class="btn btn-outline-danger"
                         @onclick="Reset"
                         disabled="@isBtnResetDisabled">
+                    <span class="oi oi-delete" aria-hidden="true"></span>
+                    &nbsp;
                     重設
                 </button>
             </div>
         </div>
+        <div class="col-12">
+        </div>
     </div>
 </div>
-
 @{
     @if (sharedPostDatas.Any())
     {
-        <div class="card">
-            <div class="card-body">
-                <div class="form-group">
-                    獲取的貼文數量：@sharedPostDatas.Count
+        <div class="col-12">
+            <div class="card mb-2">
+                <div class="card-body">
+                    已獲取的貼文數量：@sharedPostDatas.Count｜已選取的貼文數量：@sharedPostDatas.Where(n => n.IsChecked).Count()
                 </div>
+            </div>
+            <div class="form-group mb-2">
+                <label for="cbSelectAll">全選貼文</label>&nbsp;
+                <input id="cbSelectAll" type="checkbox" class="checkbox" @onchange="(evt) => { DoCheckAllClicked(evt.Value); }" />
             </div>
             <div>
                 @foreach (PostData postData in sharedPostDatas)
                 {
                     string whoCanSee = postData.IsSponsorsOnly ? "頻道會員專屬" : "所有頻道會員";
 
-                    <div class="card m-2">
-                        <div class="card-body">
-                            <div>誰能看到：@whoCanSee</div>
-                            <div>貼文網址：<a href="@postData.Url" target="_blank">@postData.Url</a></div>
-                            <div>
-                                <a href="@postData.AuthorThumbnailUrl" target="_blank">
-                                    <img class="img-thumbnail"
-                                         src="@postData.AuthorThumbnailUrl"
-                                         alt="@postData.AuthorText">
-                                </a>
-                                &nbsp;
-                                @postData.AuthorText
+                    <div class="card text-white bg-dark border-danger mb-2">
+                        <div class="card-header">
+                            <div class="col-12">
+                                <div class="row">
+                                    <div class="col-6 text-start" style="vertical-align: middle;">
+                                        <div>
+                                            <input type="checkbox" class="checkbox"
+                                           @bind="@postData.IsChecked"
+                                           @bind:event="oninput"
+                                           @onchange="(evt) => { DoPostDataCheckboxClicked(postData.PostID, evt.Value); }" />
+                                            &nbsp;
+                                            [@whoCanSee]
+                                        </div>
+                                        <div>
+                                            貼文 ID：
+                                            <a class="card-link"
+                                               href="@postData.Url"
+                                               target="_blank">@postData.PostID</a>
+                                        </div>
+                                        <div class="text-muted">
+                                            <span class="oi oi-calendar" aria-hidden="true"></span>
+                                            &nbsp;
+                                            @postData.PublishedTimeText?.TrimStart().TrimEnd()&nbsp;
+                                            <span class="oi oi-heart" aria-hidden="true"></span>
+                                            &nbsp;
+                                            @postData.VoteCount?.TrimStart().TrimEnd()
+                                        </div>
+                                    </div>
+                                    <div class="col-6 text-end">
+                                        <a href="@postData.AuthorThumbnailUrl" target="_blank">
+                                            <img class="img-thumbnail"
+                                                 src="@postData.AuthorThumbnailUrl"
+                                                 alt="@postData.AuthorText">
+                                        </a>
+                                        &nbsp;
+                                        @postData.AuthorText
+                                    </div>
+                                </div>
                             </div>
+                        </div>
+                        <div class="card-body">
                             @if (postData.ContentTexts?.Any() == true)
                             {
-                                <div>貼文內容：</div>
                                 @foreach (RunData runData in postData.ContentTexts)
                                 {
-                                    <div style="white-space: pre-wrap; line-break:anywhere;">
+                                    <div style="white-space: pre-wrap; line-break: anywhere;">
                                         @if (runData.IsLink)
                                         {
-                                            <a href="@runData.Url" target="_blank">@runData.Text</a>
+                                            <a class="card-link" href="@runData.Url" target="_blank">@runData.Text</a>
                                         }
                                         else
                                         {
@@ -88,33 +128,64 @@
                                     </div>
                                 }
                             }
-                            <div>
-                                發布時間：@postData.PublishedTimeText
-                            </div>
-                            <div>
-                                投票次數：@postData.VoteCount
-                            </div>
-                            @if (postData.Attachments?.Any() == true)
+                        </div>
+                        @if (postData.Attachments?.Any() == true)
+                        {
+                            int idx = 1;
+
+                            @foreach (AttachmentData attachmentData in postData.Attachments)
                             {
-                                <div>附件內容：</div>
-                                @foreach (AttachmentData attachmentData in postData.Attachments)
+                                @if (attachmentData.IsVideo)
                                 {
-                                    <div class="mb-2">
-                                        @if (attachmentData.IsVideo)
-                                        {
-                                            <a href="@attachmentData.Url" target="_blank">
-                                                <img class="img-thumbnail" src="@attachmentData.Url" alt="附件">
-                                            </a>
-                                        }
-                                        else
-                                        {
-                                            <a href="@attachmentData.Url" target="_blank">
-                                                <img class="img-thumbnail" src="@attachmentData.Url" alt="附件">
-                                            </a>
-                                        }
+                                    VideoData? videoData = attachmentData.VideoData;
+
+                                    <a href="@videoData?.ThumbnailUrl" target="_blank">
+                                        <img class="card-img-top" src="@videoData?.ThumbnailUrl" alt="影片的預覽圖">
+                                    </a>
+                                    <div class="card-body">
+                                        <h5 class="card-title">
+                                            <a class="card-link" href="@videoData?.Url" target="_blank">@videoData?.Title</a>
+                                        </h5>
+                                        <h6 class="card-subtitle mb-2 text-muted">
+                                            <span class="oi oi-person" aria-hidden="true"></span>
+                                            &nbsp;
+                                            @videoData?.OwnerText?.TrimStart().TrimEnd()
+                                        </h6>
+                                        <p class="card-text">
+                                            <span class="oi oi-calendar" aria-hidden="true"></span>
+                                            &nbsp;
+                                            @videoData?.PublishedTimeText?.TrimStart().TrimEnd()
+                                        </p>
+                                        <p class="card-text">
+                                            <span class="oi oi-timer" aria-hidden="true"></span>
+                                            &nbsp;
+                                            @videoData?.LengthText?.TrimStart().TrimEnd()
+                                        </p>
+                                        <p class="card-text">
+                                            <span class="oi oi-info" aria-hidden="true"></span>
+                                            &nbsp;簡述：
+                                        </p>
+                                        <div style="white-space: pre-wrap; line-break: anywhere;">
+                                            @videoData?.DescriptionSnippet?.TrimStart().TrimEnd()
+                                        </div>
                                     </div>
                                 }
+                                else
+                                {
+                                    <a href="@attachmentData.Url" target="_blank">
+                                        <img class="card-img-bottom" src="@attachmentData.Url" alt="附件 @idx">
+                                    </a>
+                                }
+
+                                idx++;
                             }
+                        }
+                        <div class="card-footer text-muted">
+                            <span class="oi oi-link-intact" aria-hidden="true"></span>
+                            &nbsp;
+                            <a class="card-link"
+                               href="@postData.Url"
+                               target="_blank">@postData.Url</a>
                         </div>
                     </div>
                 }
@@ -124,6 +195,7 @@
 }
 
 @code {
+    protected bool isCheckedAll { get; set; } = false;
     protected bool isBtnFetchLatestPostsDisabled { get; set; } = false;
     protected bool isBtnFetchOlderPostsDisabled { get; set; } = true;
     protected bool isBtnResetDisabled { get; set; } = true;
@@ -138,6 +210,42 @@
     private BrowserType browserType = BrowserType.GoogleChrome;
     private string profileName = "";
     private bool useCookies = false;
+
+    /// <summary>
+    /// 執行全選貼文 Checkbox 點擊
+    /// </summary>
+    /// <param name="value">object</param>
+    private void DoCheckAllClicked(object? value)
+    {
+        bool isChecked = Convert.ToBoolean(value);
+
+        foreach (PostData postData in sharedPostDatas)
+        {
+            postData.IsChecked = isChecked;
+        }
+    }
+
+    /// <summary>
+    /// 執行貼文的 Checkbox 點擊
+    /// </summary>
+    /// <param name="postID">字串，貼文的 ID</param>
+    /// <param name="value">object</param>
+    private void DoPostDataCheckboxClicked(string? postID, object? value)
+    {
+        if (string.IsNullOrEmpty(postID))
+        {
+            return;
+        }
+
+        bool isChecked = Convert.ToBoolean(value);
+
+        PostData? postData = sharedPostDatas.FirstOrDefault(n => n.PostID == postID);
+
+        if (postData != null)
+        {
+            postData.IsChecked = isChecked;
+        }
+    }
 
     /// <summary>
     /// 取得最新的社群貼文

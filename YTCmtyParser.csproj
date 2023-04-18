@@ -34,34 +34,42 @@
 
     <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net7.0-android|AnyCPU'">
       <DebugType>embedded</DebugType>
+      <ApplicationId>com.rubujo.ytcmtyparser</ApplicationId>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net7.0-android|AnyCPU'">
       <DebugType>embedded</DebugType>
+      <ApplicationId>com.rubujo.ytcmtyparser</ApplicationId>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net7.0-ios|AnyCPU'">
       <DebugType>embedded</DebugType>
+      <ApplicationId>com.rubujo.ytcmtyparser</ApplicationId>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net7.0-ios|AnyCPU'">
       <DebugType>embedded</DebugType>
+      <ApplicationId>com.rubujo.ytcmtyparser</ApplicationId>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net7.0-maccatalyst|AnyCPU'">
       <DebugType>embedded</DebugType>
+      <ApplicationId>com.rubujo.ytcmtyparser</ApplicationId>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net7.0-maccatalyst|AnyCPU'">
       <DebugType>embedded</DebugType>
+      <ApplicationId>com.rubujo.ytcmtyparser</ApplicationId>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net7.0-windows10.0.19041.0|AnyCPU'">
       <DebugType>embedded</DebugType>
+      <ApplicationId>com.rubujo.ytcmtyparser</ApplicationId>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net7.0-windows10.0.19041.0|AnyCPU'">
       <DebugType>embedded</DebugType>
+      <ApplicationId>com.rubujo.ytcmtyparser</ApplicationId>
     </PropertyGroup>
 
     <ItemGroup>
@@ -84,7 +92,7 @@
 
     <ItemGroup>
         <PackageReference Include="AngleSharp" Version="1.0.1" />
-        <PackageReference Include="BouncyCastle.Cryptography" Version="2.1.1" />
+        <PackageReference Include="BouncyCastle.Cryptography" Version="2.2.0" />
         <PackageReference Include="discord-webhook-client" Version="3.1.0" />
         <PackageReference Include="Microsoft.Data.Sqlite" Version="7.0.5" />
         <PackageReference Include="Microsoft.Extensions.Http" Version="7.0.0" />
