@@ -114,13 +114,13 @@
             </div>
             <div class="mb-2">
                 <div class="form-check">
-                    <label for="cbSelectAll" class="form-check-label">全選貼文</label>&nbsp;
                     <input id="cbSelectAll"
                        type="checkbox"
                        class="form-check-input"
                        @bind="isCBCheckAllChecked"
                        @bind:event="oninput"
                        @onchange="(evt) => DoCheckAllClicked(evt.Value)" />
+                    <label for="cbSelectAll" class="form-check-label">全選貼文</label>&nbsp;
                 </div>
             </div>
             <div>
@@ -134,7 +134,7 @@
                                 <div class="row">
                                     <div class="col-md-6 text-start" style="vertical-align: middle;">
                                         <div>
-                                            <input type="checkbox" class="checkbox"
+                                            <input type="checkbox" class="form-check-input"
                                            @bind="@postData.IsChecked"
                                            @bind:event="oninput"
                                            @onchange="(evt) => DoPostDataCheckboxClicked(postData.PostID, evt.Value)" />
@@ -285,11 +285,6 @@
     // 使用者輸入的值。
     private string? urlYtCh = string.Empty;
     private string urlDCWebhook = string.Empty;
-
-    // 網頁瀏覽器 Cookies。
-    private BrowserType browserType = BrowserType.GoogleChrome;
-    private string profileName = "";
-    private bool useCookies = false;
 
     /// <summary>
     /// 執行全選貼文 Checkbox 點擊
@@ -828,16 +823,49 @@
     {
         string cookies = string.Empty;
 
-        if (useCookies)
-        {
-            List<BrowserUtil.Cookie> listCookies = BrowserUtil.GetCookies(
-                browser: browserType,
-                profileName: profileName,
-                hostKey: ".youtube.com");
+        bool? useCookies = PreferencesUtil.GetBooleanValue(GlobalSet.Keys.UseCookies);
 
-            cookies = string.Join(";", listCookies.Select(n => $"{n.Name}={n.Value}"));
+        if (DeviceInfo.Platform == DevicePlatform.WinUI)
+        {
+            string browserType = PreferencesUtil.GetStringValue(GlobalSet.Keys.BrowserType) ?? string.Empty;
+            string profileName = PreferencesUtil.GetStringValue(GlobalSet.Keys.ProfileName) ?? string.Empty;
+
+            if (useCookies == true)
+            {
+                List<BrowserUtil.Cookie> listCookies = BrowserUtil.GetCookies(
+                    browser: GetBrowserType(browserType),
+                    profileName: profileName,
+                    hostKey: ".youtube.com");
+
+                cookies = string.Join(";", listCookies.Select(n => $"{n.Name}={n.Value}"));
+            }
+        }
+        else
+        {
+            cookies = PreferencesUtil.GetStringValue(GlobalSet.Keys.Cookies) ?? string.Empty;
         }
 
         return cookies;
+    }
+
+    /// <summary>
+    /// 取得網頁瀏覽器類型
+    /// </summary>
+    /// <param name="value">字串，網頁瀏覽器類型</param>
+    /// <returns>BrowserUtil.BrowserType</returns>
+    private BrowserUtil.BrowserType GetBrowserType(string value)
+    {
+        return value switch
+        {
+            nameof(BrowserUtil.BrowserType.Brave) => BrowserUtil.BrowserType.Brave,
+            nameof(BrowserUtil.BrowserType.GoogleChrome) => BrowserUtil.BrowserType.GoogleChrome,
+            nameof(BrowserUtil.BrowserType.Chromium) => BrowserUtil.BrowserType.Chromium,
+            nameof(BrowserUtil.BrowserType.MicrosoftEdge) => BrowserUtil.BrowserType.MicrosoftEdge,
+            nameof(BrowserUtil.BrowserType.Opera) => BrowserUtil.BrowserType.Opera,
+            nameof(BrowserUtil.BrowserType.OperaGX) => BrowserUtil.BrowserType.OperaGX,
+            nameof(BrowserUtil.BrowserType.Vivaldi) => BrowserUtil.BrowserType.Vivaldi,
+            nameof(BrowserUtil.BrowserType.MozillaFirefox) => BrowserUtil.BrowserType.MozillaFirefox,
+            _ => BrowserUtil.BrowserType.GoogleChrome
+        };
     }
 }

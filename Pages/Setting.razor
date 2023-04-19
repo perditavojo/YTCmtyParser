@@ -1,6 +1,7 @@
 ﻿@page "/setting"
 
 @using System.Text.RegularExpressions;
+@using System.Diagnostics;
 @using YTCmtyParser.Commons.Utils;
 @using YTCmtyParser.Data;
 
@@ -12,13 +13,73 @@
                 <label for="iDCWebhookUrl" class="form-label">Discord Webhook 網址</label>
                 <input id="iDCWebhookUrl" type="url"
                        class="form-control"
-                       @bind="urlDCWebhook"
+                       @bind="sharedUrlDCWebhook"
                        placeholder="Discord Webhook 網址"></input>
                 <div class="form-text text-danger">
                     ※只支援 Discord 文字頻道的 Discord Webhook 網址。
                 </div>
             </div>
-            <div class="form-group text-end mb-2">
+            <div class="mb-2">
+                @if (DeviceInfo.Platform == DevicePlatform.WinUI)
+                {
+                    <div class="form-floating mb-2">
+                        <select class="form-select" id="sBrowserType" @bind="@sharedBrowserType" aria-label="網頁瀏覽器">
+                            <option value="@nameof(BrowserUtil.BrowserType.Brave)">
+                                Brave
+                            </option>
+                            <option value="@nameof(BrowserUtil.BrowserType.GoogleChrome)">
+                                Google Chrome
+                            </option>
+                            <option value="@nameof(BrowserUtil.BrowserType.Chromium)">
+                                Chromium
+                            </option>
+                            <option value="@nameof(BrowserUtil.BrowserType.MicrosoftEdge)">
+                                Microsoft Edge
+                            </option>
+                            <option value="@nameof(BrowserUtil.BrowserType.Opera)">
+                                Opera
+                            </option>
+                            <option value="@nameof(BrowserUtil.BrowserType.OperaGX)">
+                                Opera GX
+                            </option>
+                            <option value="@nameof(BrowserUtil.BrowserType.Vivaldi)">
+                                Vivaldi
+                            </option>
+                            <option value="@nameof(BrowserUtil.BrowserType.MozillaFirefox)">
+                                Mozilla Firefox
+                            </option>
+                        </select>
+                        <label for="sBrowserType">網頁瀏覽器</label>
+                    </div>
+                    <label for="iProfileName" class="form-label">網頁瀏覽器的設定檔名稱／路徑</label>
+                    <input id="iProfileName" type="text"
+                           class="form-control"
+                       @bind="sharedProfileName"
+                           placeholder="留空以使用預設值"></input>
+                }
+                else
+                {
+                    <div class="form-floating">
+                        <textarea class="form-control"
+                                  placeholder="請貼上 cookies.txt 的內容"
+                                  id="tCookies"
+                                  style="height: 150px;"
+                              @bind="@sharedCookies"
+                              @bind:event="oninput"
+                              @onchange="async (evt) => await ParseCookies(evt.Value)"></textarea>
+                        <label for="tCookies">cookies.txt</label>
+                    </div>
+                }
+            </div>
+            <div class="mb-2">
+                <div class="form-check">
+                    <input id="cbUseCookies" class="form-check-input" type="checkbox" @bind="@sharedUseCookies">
+                    <label for="cbUseCookies" class="form-check-label">
+                        使用 Cookies
+                    </label>
+                </div>
+            </div>
+            <div class="text-end mb-2">
                 <button class="btn btn-primary mb-1"
                         @onclick="async () => await SaveSetting()">
                     <span class="oi oi-pencil" aria-hidden="true"></span>
@@ -44,11 +105,11 @@
         RegexOptions.CultureInvariant);
 
     // 變數。
-    private string? urlDCWebhook = string.Empty;
-    private string? browserType = string.Empty;
-    private string? profileName = string.Empty;
-    private string? cookies = string.Empty;
-    private bool? useCookies = false;
+    private string? sharedUrlDCWebhook = string.Empty;
+    private string? sharedBrowserType = string.Empty;
+    private string? sharedProfileName = string.Empty;
+    private string? sharedCookies = string.Empty;
+    private bool? sharedUseCookies = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -71,23 +132,23 @@
             bool hasCookies = PreferencesUtil.HasKey(GlobalSet.Keys.Cookies);
             bool hasUseCookies = PreferencesUtil.HasKey(GlobalSet.Keys.UseCookies);
 
-            urlDCWebhook = hasUrlDCWebhook ?
+            sharedUrlDCWebhook = hasUrlDCWebhook ?
                 PreferencesUtil.GetStringValue(GlobalSet.Keys.UrlDCWebhook) :
                 string.Empty;
 
-            browserType = hasBrowserType ?
+            sharedBrowserType = hasBrowserType ?
                 PreferencesUtil.GetStringValue(GlobalSet.Keys.BrowserType) :
                 string.Empty;
 
-            profileName = hasProfileName ?
+            sharedProfileName = hasProfileName ?
                 PreferencesUtil.GetStringValue(GlobalSet.Keys.ProfileName) :
                 string.Empty;
 
-            cookies = hasCookies ?
+            sharedCookies = hasCookies ?
                 PreferencesUtil.GetStringValue(GlobalSet.Keys.Cookies) :
                 string.Empty;
 
-            useCookies = hasUseCookies ?
+            sharedUseCookies = hasUseCookies ?
                 PreferencesUtil.GetBooleanValue(GlobalSet.Keys.UseCookies) :
                 false;
         }
@@ -105,10 +166,10 @@
     {
         try
         {
-            if (!string.IsNullOrEmpty(urlDCWebhook) &&
-                !WebhookUrlRegex.IsMatch(urlDCWebhook))
+            if (!string.IsNullOrEmpty(sharedUrlDCWebhook) &&
+                !WebhookUrlRegex.IsMatch(sharedUrlDCWebhook))
             {
-                urlDCWebhook = string.Empty;
+                sharedUrlDCWebhook = string.Empty;
 
                 await AlertUtil.ShowToast("請輸入正確的 Discord Webhook 網址。");
 
@@ -116,30 +177,32 @@
             }
             else
             {
-                if (PreferencesUtil.GetStringValue(GlobalSet.Keys.UrlDCWebhook) != urlDCWebhook)
+                if (PreferencesUtil.GetStringValue(GlobalSet.Keys.UrlDCWebhook) != sharedUrlDCWebhook)
                 {
-                    PreferencesUtil.SetValue(GlobalSet.Keys.UrlDCWebhook, urlDCWebhook);
+                    PreferencesUtil.SetValue(GlobalSet.Keys.UrlDCWebhook, sharedUrlDCWebhook);
                 }
             }
 
-            if (PreferencesUtil.GetStringValue(GlobalSet.Keys.BrowserType) != browserType)
+            if (PreferencesUtil.GetStringValue(GlobalSet.Keys.BrowserType) != sharedBrowserType)
             {
-                PreferencesUtil.SetValue(GlobalSet.Keys.BrowserType, browserType);
+                PreferencesUtil.SetValue(GlobalSet.Keys.BrowserType, sharedBrowserType);
             }
 
-            if (PreferencesUtil.GetStringValue(GlobalSet.Keys.ProfileName) != profileName)
+            if (PreferencesUtil.GetStringValue(GlobalSet.Keys.ProfileName) != sharedProfileName)
             {
-                PreferencesUtil.SetValue(GlobalSet.Keys.ProfileName, profileName);
+                PreferencesUtil.SetValue(GlobalSet.Keys.ProfileName, sharedProfileName);
             }
 
-            if (PreferencesUtil.GetStringValue(GlobalSet.Keys.Cookies) != cookies)
+            if (PreferencesUtil.GetStringValue(GlobalSet.Keys.Cookies) != sharedCookies)
             {
-                PreferencesUtil.SetValue(GlobalSet.Keys.Cookies, cookies);
+                PreferencesUtil.SetValue(GlobalSet.Keys.Cookies, sharedCookies);
             }
 
-            if (PreferencesUtil.GetBooleanValue(GlobalSet.Keys.UseCookies) != useCookies)
+            if (PreferencesUtil.GetBooleanValue(GlobalSet.Keys.UseCookies) != sharedUseCookies)
             {
-                PreferencesUtil.SetValue(GlobalSet.Keys.UseCookies, useCookies);
+                // TODO: 2023-04-19 待處裡。
+
+                PreferencesUtil.SetValue(GlobalSet.Keys.UseCookies, sharedUseCookies);
             }
 
             await AlertUtil.ShowToast("已儲存設定。");
@@ -163,6 +226,60 @@
             await LoadPrefs();
 
             await AlertUtil.ShowToast("已清除所有設定。");
+        }
+        catch (Exception ex)
+        {
+            await AlertUtil.ShowErrorAlert(ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// 解析 cookies.txt 的內容
+    /// </summary>
+    /// <param name="inputValue">object</param>
+    /// <returns>Task</returns>
+    public async Task ParseCookies(object? inputValue)
+    {
+        try
+        {
+            string? textContent = inputValue?.ToString();
+
+            if (string.IsNullOrEmpty(textContent))
+            {
+                return;
+            }
+
+            string[] lines = textContent.Split(
+                Environment.NewLine.ToCharArray(),
+                StringSplitOptions.RemoveEmptyEntries);
+
+            List<string> listCookies = new();
+
+            foreach (string line in lines)
+            {
+                // TODO: 2023-04-19 待確認是否正確。
+                // Ref: https://stackoverflow.com/q/15788341
+                //string[] cookie = line.Split('\t');
+                string[] cookie = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+                string domainName = cookie[0];
+
+                if (domainName == ".youtube.com")
+                {
+                    string name = cookie[5];
+                    string value = cookie[6];
+
+                    listCookies.Add($"{name}={value}");
+                }
+            }
+
+            // 當為空白時，則 Cookies 解析失敗。
+            sharedCookies = string.Join(";", listCookies);
+
+            if (string.IsNullOrEmpty(sharedCookies))
+            {
+                await AlertUtil.ShowToast("cookies.txt 內容解析失敗。");
+            }
         }
         catch (Exception ex)
         {

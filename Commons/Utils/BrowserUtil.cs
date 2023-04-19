@@ -2,6 +2,8 @@
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Modes;
 using Org.BouncyCastle.Crypto.Parameters;
+using System.Diagnostics;
+using System.Runtime.Versioning;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -60,6 +62,7 @@ public class BrowserUtil
     /// <param name="profileName">字串，設定檔名稱</param>
     /// <param name="hostKey">字串，主機鍵值</param>
     /// <returns>List&lt;Cookie&gt;</returns>
+    [SupportedOSPlatform("Windows")]
     public static List<Cookie> GetCookies(
         BrowserType browser,
         string profileName,
@@ -124,7 +127,7 @@ public class BrowserUtil
                     $@"{profileName}\Network\Cookies");
         }
 
-        Console.WriteLine($"Cookie 檔案的路徑：{cookieFilePath}");
+        Debug.WriteLine($"Cookie 檔案的路徑：{cookieFilePath}");
 
         if (File.Exists(cookieFilePath))
         {
@@ -162,6 +165,7 @@ public class BrowserUtil
     /// <param name="cookieFilePath">字串，Cookie 檔案的位置</param>
     /// <param name="hostKey">字串，主機鍵值</param>
     /// <returns>List&lt;Cookie&gt;</returns>
+    [SupportedOSPlatform("Windows")]
     private static List<Cookie> QuerySQLiteDB(
         BrowserType browser,
         string cookieFilePath,
@@ -241,7 +245,7 @@ public class BrowserUtil
         }
         catch (Exception ex)
         {
-            Console.WriteLine(ex.ToString());
+            Debug.WriteLine(ex.ToString());
         }
 
         return outputData;
@@ -298,6 +302,7 @@ public class BrowserUtil
     /// <summary>
     /// AesGcm256
     /// </summary>
+    [SupportedOSPlatform("Windows")]
     public class AesGcm256
     {
         /// <summary>
