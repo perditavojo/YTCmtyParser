@@ -12,18 +12,18 @@ namespace YTCmtyParser.Commons.Utils;
 public class DiscordUtil
 {
     /// <summary>
-    /// 傳送至 Discord 頻道
+    /// 傳送至 Discord
     /// <para>※只支援文字頻道。</para>
     /// </summary>
     /// <param name="postData">字串，PostData</param>
     /// <param name="disocrdWebhookUrl">字串，Discord 的 Webhook 網址</param>
-    public static async void SendToDiscordChannel(PostData postData, string disocrdWebhookUrl)
+    public static async Task SendToDiscord(PostData postData, string disocrdWebhookUrl)
     {
         DiscordWebhookClient discordWebhookClient = new(disocrdWebhookUrl);
 
         string content = string.Empty;
 
-        content += $"> 網址：<{postData.Url}>{Environment.NewLine}";
+        content += $"> 貼文網址：<{postData.Url}>{Environment.NewLine}";
         content += $"> 誰能看到：`{(postData.IsSponsorsOnly ? "頻道會員專屬" : "所有頻道會員")}`{Environment.NewLine}";
         content += $"> 發布時間：{postData.PublishedTimeText}{Environment.NewLine}";
         content += $"> 投票次數：{postData.VoteCount}{Environment.NewLine}";
@@ -52,7 +52,7 @@ public class DiscordUtil
             }
         }
 
-        DiscordMessageEmbed[] embeds = Array.Empty<DiscordMessageEmbed>();
+        DiscordMessageEmbed[]? embeds = Array.Empty<DiscordMessageEmbed>();
 
         DiscordFile[] files = Array.Empty<DiscordFile>();
 
@@ -126,6 +126,11 @@ public class DiscordUtil
             files = fileSet.ToArray();
         }
 
+        if (embeds == Array.Empty<DiscordMessageEmbed>())
+        {
+            embeds = null;
+        }
+
         DiscordMessage discordMessage = new(
             content: content,
             username: postData.AuthorText,
@@ -135,7 +140,8 @@ public class DiscordUtil
 
         await discordWebhookClient.SendToDiscord(
             message: discordMessage,
-            files: files);
+            files: files,
+            sendMessageAsFileAttachmentOnError: true);
     }
 
     /// <summary>

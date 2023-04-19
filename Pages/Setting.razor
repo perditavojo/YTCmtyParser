@@ -1,23 +1,172 @@
 ﻿@page "/setting"
-@using CommunityToolkit.Maui.Alerts;
+
+@using System.Text.RegularExpressions;
+@using YTCmtyParser.Commons.Utils;
+@using YTCmtyParser.Data;
 
 <h1>設定</h1>
-
-<button @onclick="async () => await ShowToast(mesage)">點我</button>
+<div class="card mb-2">
+    <div class="card-body">
+        <div class="col-12">
+            <div class="mb-2">
+                <label for="iDCWebhookUrl" class="form-label">Discord Webhook 網址</label>
+                <input id="iDCWebhookUrl" type="url"
+                       class="form-control"
+                       @bind="urlDCWebhook"
+                       placeholder="Discord Webhook 網址"></input>
+                <div class="form-text text-danger">
+                    ※只支援 Discord 文字頻道的 Discord Webhook 網址。
+                </div>
+            </div>
+            <div class="form-group text-end mb-2">
+                <button class="btn btn-primary mb-1"
+                        @onclick="async () => await SaveSetting()">
+                    <span class="oi oi-pencil" aria-hidden="true"></span>
+                    &nbsp;儲存設定
+                </button>
+                &nbsp;
+                <button class="btn btn-outline-danger mb-1"
+                        @onclick="async () => await ClearSetting()">
+                    <span class="oi oi-trash" aria-hidden="true"></span>
+                    &nbsp;清除設定
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
 @code {
-    private string mesage = "測試吐司訊息";
+    // 來源：https://github.com/discord-net/Discord.Net/blob/dev/src/Discord.Net.Webhook/DiscordWebhookClient.cs#L52
+    private static Regex WebhookUrlRegex = new Regex(
+        @"^.*(discord|discordapp)\.com\/api\/webhooks\/([\d]+)\/([a-z0-9_-]+)$",
+        RegexOptions.Compiled |
+        RegexOptions.IgnoreCase |
+        RegexOptions.CultureInvariant);
+
+    // 變數。
+    private string? urlDCWebhook = string.Empty;
+    private string? browserType = string.Empty;
+    private string? profileName = string.Empty;
+    private string? cookies = string.Empty;
+    private bool? useCookies = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadPrefs();
+
+        await Task.CompletedTask;
+    }
 
     /// <summary>
-    /// 顯示 Toast
+    /// 載入設定
     /// </summary>
-    /// <param name="message">字串，訊息</param>
-    /// <param name="ct">CancellationToken</param>
     /// <returns>Task</returns>
-    public async Task ShowToast(
-        string message,
-        CancellationToken ct = default)
+    private async Task LoadPrefs()
     {
-        await Toast.Make(message).Show(ct);
+        try
+        {
+            bool hasUrlDCWebhook = PreferencesUtil.HasKey(GlobalSet.Keys.UrlDCWebhook);
+            bool hasBrowserType = PreferencesUtil.HasKey(GlobalSet.Keys.BrowserType);
+            bool hasProfileName = PreferencesUtil.HasKey(GlobalSet.Keys.ProfileName);
+            bool hasCookies = PreferencesUtil.HasKey(GlobalSet.Keys.Cookies);
+            bool hasUseCookies = PreferencesUtil.HasKey(GlobalSet.Keys.UseCookies);
+
+            urlDCWebhook = hasUrlDCWebhook ?
+                PreferencesUtil.GetStringValue(GlobalSet.Keys.UrlDCWebhook) :
+                string.Empty;
+
+            browserType = hasBrowserType ?
+                PreferencesUtil.GetStringValue(GlobalSet.Keys.BrowserType) :
+                string.Empty;
+
+            profileName = hasProfileName ?
+                PreferencesUtil.GetStringValue(GlobalSet.Keys.ProfileName) :
+                string.Empty;
+
+            cookies = hasCookies ?
+                PreferencesUtil.GetStringValue(GlobalSet.Keys.Cookies) :
+                string.Empty;
+
+            useCookies = hasUseCookies ?
+                PreferencesUtil.GetBooleanValue(GlobalSet.Keys.UseCookies) :
+                false;
+        }
+        catch (Exception ex)
+        {
+            await AlertUtil.ShowErrorAlert(ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// 儲存設定
+    /// </summary>
+    /// <returns>Task</returns>
+    private async Task SaveSetting()
+    {
+        try
+        {
+            if (!string.IsNullOrEmpty(urlDCWebhook) &&
+                !WebhookUrlRegex.IsMatch(urlDCWebhook))
+            {
+                urlDCWebhook = string.Empty;
+
+                await AlertUtil.ShowToast("請輸入正確的 Discord Webhook 網址。");
+
+                return;
+            }
+            else
+            {
+                if (PreferencesUtil.GetStringValue(GlobalSet.Keys.UrlDCWebhook) != urlDCWebhook)
+                {
+                    PreferencesUtil.SetValue(GlobalSet.Keys.UrlDCWebhook, urlDCWebhook);
+                }
+            }
+
+            if (PreferencesUtil.GetStringValue(GlobalSet.Keys.BrowserType) != browserType)
+            {
+                PreferencesUtil.SetValue(GlobalSet.Keys.BrowserType, browserType);
+            }
+
+            if (PreferencesUtil.GetStringValue(GlobalSet.Keys.ProfileName) != profileName)
+            {
+                PreferencesUtil.SetValue(GlobalSet.Keys.ProfileName, profileName);
+            }
+
+            if (PreferencesUtil.GetStringValue(GlobalSet.Keys.Cookies) != cookies)
+            {
+                PreferencesUtil.SetValue(GlobalSet.Keys.Cookies, cookies);
+            }
+
+            if (PreferencesUtil.GetBooleanValue(GlobalSet.Keys.UseCookies) != useCookies)
+            {
+                PreferencesUtil.SetValue(GlobalSet.Keys.UseCookies, useCookies);
+            }
+
+            await AlertUtil.ShowToast("已儲存設定。");
+        }
+        catch (Exception ex)
+        {
+            await AlertUtil.ShowErrorAlert(ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// 清除設定
+    /// </summary>
+    /// <returns>Task</returns>
+    private async Task ClearSetting()
+    {
+        try
+        {
+            PreferencesUtil.ClearAllKeys();
+
+            await LoadPrefs();
+
+            await AlertUtil.ShowToast("已清除所有設定。");
+        }
+        catch (Exception ex)
+        {
+            await AlertUtil.ShowErrorAlert(ex.Message);
+        }
     }
 }

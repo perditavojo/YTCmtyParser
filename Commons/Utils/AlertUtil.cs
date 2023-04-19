@@ -1,10 +1,23 @@
-﻿namespace YTCmtyParser.Commons.Utils;
+﻿using CommunityToolkit.Maui.Alerts;
+
+namespace YTCmtyParser.Commons.Utils;
 
 /// <summary>
 /// 警報工具類別
 /// </summary>
 public class AlertUtil
 {
+    /// <summary>
+    /// 顯示 Toast
+    /// </summary>
+    /// <param name="message">字串，訊息</param>
+    /// <param name="ct">CancellationToken</param>
+    /// <returns>Task</returns>
+    public static async Task ShowToast(string message, CancellationToken ct = default)
+    {
+        await Toast.Make(message).Show(ct);
+    }
+
     /// <summary>
     ///  顯示警報
     /// </summary>

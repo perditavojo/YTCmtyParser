@@ -4,6 +4,7 @@
 @using CommunityToolkit.Maui.Alerts;
 @using CommunityToolkit.Maui.Storage;
 @using System.Text;
+@using System.Security.Cryptography;
 @using YTApi.Commons.Models;
 @using YTApi.Commons;
 @using YTCmtyParser.Commons.Extensions;
@@ -19,53 +20,56 @@
 <div class="card mb-2">
     <div class="card-body">
         <div class="col-12">
-            <div class="form-group form-inline mb-2">
-                <span for="iYtChUrl">目標 YouTube 頻道網址</span>
-                <input id="iYtChUrl" type="url"
-                       class="form-control"
-                       @bind="urlYtCh"
-                       placeholder="YouTube 頻道網址"></input>
-            </div>
-            <div class="form-group mb-2">
-                <button class="btn btn-primary"
-                        @onclick="() => FetchInitialPosts(urlYtCh)"
-                        disabled="@isBtnFetchLatestPostsDisabled">
-                    <span class="oi oi-data-transfer-download" aria-hidden="true"></span>
+            <div class="row">
+                <div class="mb-2">
+                    <label for="iYtChUrl" class="form-label">YouTube 頻道網址</label>
+                    <input id="iYtChUrl" type="url"
+                           class="form-control"
+                           @bind="urlYtCh"
+                           placeholder="YouTube 頻道網址"></input>
+                </div>
+                <div class="mb-2">
+                    <button class="btn btn-primary mb-1"
+                            @onclick="async () => await FetchInitialPosts(urlYtCh)"
+                            disabled="@isBtnFetchLatestPostsDisabled">
+                        <span class="oi oi-cloud-download" aria-hidden="true"></span>
+                        &nbsp;
+                        獲取最新的社群貼文
+                    </button>
                     &nbsp;
-                    獲取最新的社群貼文
-                </button>
-                &nbsp;
-                <button class="btn btn-outline-secondary"
-                        @onclick="FetchOlderPosts"
-                        disabled="@isBtnFetchOlderPostsDisabled">
-                    <span class="oi oi-data-transfer-download" aria-hidden="true"></span>
+                    <button class="btn btn-outline-secondary mb-1"
+                            @onclick="async () => await FetchOlderPosts()"
+                            disabled="@isBtnFetchOlderPostsDisabled">
+                        <span class="oi oi-cloud-download" aria-hidden="true"></span>
+                        &nbsp;
+                        獲取先前的社群貼文
+                    </button>
                     &nbsp;
-                    獲取先前的社群貼文
-                </button>
-                &nbsp;
-                <button class="btn btn-outline-warning"
-                        @onclick="FetchRestPosts"
-                        disabled="@isBtnFetchRestPostsDisabled">
-                    <span class="oi oi-data-transfer-download" aria-hidden="true"></span>
+                    <button class="btn btn-outline-warning mb-1"
+                            @onclick="async () => await FetchRestPosts()"
+                            disabled="@isBtnFetchRestPostsDisabled">
+                        <span class="oi oi-cloud-download" aria-hidden="true"></span>
+                        &nbsp;
+                        獲取全部的社群貼文
+                    </button>
+                </div>
+                <div>
+                    <button class="btn btn-outline-primary mb-1"
+                            @onclick="async () => await ImportJsonFile()"
+                            disabled="@isBtnImportJsonFileDisabled">
+                        <span class="oi oi-data-transfer-upload" aria-hidden="true"></span>
+                        &nbsp;
+                        載入 JSON 檔案
+                    </button>
                     &nbsp;
-                    獲取全部的社群貼文
-                </button>
-            </div>
-            <div class="form-group mb-2">
-                <button class="btn btn-outline-primary"
-                        @onclick="() => ImportJsonFile()">
-                    <span class="oi oi-file" aria-hidden="true"></span>
-                    &nbsp;
-                    載入檔案
-                </button>
-                &nbsp;
-                <button class="btn btn-outline-danger"
-                        @onclick="Reset"
-                        disabled="@isBtnResetDisabled">
-                    <span class="oi oi-delete" aria-hidden="true"></span>
-                    &nbsp;
-                    重設
-                </button>
+                    <button class="btn btn-outline-danger mb-1"
+                            @onclick="Reset"
+                            disabled="@isBtnResetDisabled">
+                        <span class="oi oi-action-undo" aria-hidden="true"></span>
+                        &nbsp;
+                        重設
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -76,23 +80,48 @@
         <div class="col-12">
             <div class="card mb-2">
                 <div class="card-body">
-                    已獲取的貼文數量：@sharedPostDatas.Count｜
-                    已選取的貼文數量：@sharedPostDatas.Where(n => n.IsChecked).Count()｜
-                    <button class="btn btn-outline-success"
-                        @onclick="() => ExportJsonFile()">
-                        <span class="oi oi-file" aria-hidden="true"></span>
-                        &nbsp;
-                        匯出檔案
-                    </button>
+                    <div class="col-12">
+                        <div class="row">
+                            <div class="col">
+                                <button class="btn btn-outline-success mb-1"
+                                    @onclick="async () => await ExportJsonFile()">
+                                    <span class="oi oi-data-transfer-download" aria-hidden="true"></span>
+                                    &nbsp;
+                                    匯出 JSON 檔案
+                                </button>
+                                &nbsp;
+                                <button class="btn btn-outline-info mb-1"
+                                    @onclick="async () => await SendPostsToDiscord()">
+                                    <span class="oi oi-cloud-upload" aria-hidden="true"></span>
+                                    &nbsp;
+                                    傳送貼文至 Discord
+                                </button>
+                            </div>
+                            <div class="col text-end">
+                                已獲取的貼文數量：
+                                <span class="text-info">
+                                    @sharedPostDatas.Count
+                                </span>
+                                <br />
+                                已選取的貼文數量：
+                                <span class="text-warning">
+                                    @sharedPostDatas.Where(n => n.IsChecked).Count()
+                                </span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="form-group mb-2">
-                <label for="cbSelectAll">全選貼文</label>&nbsp;
-                <input id="cbSelectAll" type="checkbox"
-                   class="checkbox"
-                   @bind="isCBCheckAllChecked"
-                   @bind:event="oninput"
-                   @onchange="(evt) => { DoCheckAllClicked(evt.Value); }" />
+            <div class="mb-2">
+                <div class="form-check">
+                    <label for="cbSelectAll" class="form-check-label">全選貼文</label>&nbsp;
+                    <input id="cbSelectAll"
+                       type="checkbox"
+                       class="form-check-input"
+                       @bind="isCBCheckAllChecked"
+                       @bind:event="oninput"
+                       @onchange="(evt) => DoCheckAllClicked(evt.Value)" />
+                </div>
             </div>
             <div>
                 @foreach (PostData postData in sharedPostDatas)
@@ -103,7 +132,7 @@
                         <div class="card-header">
                             <div class="col-12">
                                 <div class="row">
-                                    <div class="col-6 text-start" style="vertical-align: middle;">
+                                    <div class="col-md-6 text-start" style="vertical-align: middle;">
                                         <div>
                                             <input type="checkbox" class="checkbox"
                                            @bind="@postData.IsChecked"
@@ -127,7 +156,7 @@
                                             @postData.VoteCount?.TrimStart().TrimEnd()
                                         </div>
                                     </div>
-                                    <div class="col-6 text-end">
+                                    <div class="col-md-6 text-end">
                                         <a href="@postData.AuthorThumbnailUrl" target="_blank">
                                             <img class="img-thumbnail"
                                                  src="@postData.AuthorThumbnailUrl"
@@ -140,6 +169,22 @@
                             </div>
                         </div>
                         <div class="card-body">
+                            <div class="col-12 text-start">
+                                <button class="btn btn-outline-light mb-1"
+                                @onclick="async () => await SendPostToDiscord(postData.PostID)">
+                                    <span class="oi oi-cloud-upload" aria-hidden="true"></span>
+                                    &nbsp;
+                                    傳送至 Discord
+                                </button>
+                                &nbsp;
+                                <button class="btn btn-outline-light mb-1"
+                                @onclick="async () => await ExportJsonFile(postData.PostID)">
+                                    <span class="oi oi-data-transfer-download" aria-hidden="true"></span>
+                                    &nbsp;
+                                    匯出 JSON 檔案
+                                </button>
+                            </div>
+                            <hr />
                             @if (postData.ContentTexts?.Any() == true)
                             {
                                 @foreach (RunData runData in postData.ContentTexts)
@@ -227,6 +272,7 @@
     protected bool isBtnFetchLatestPostsDisabled { get; set; } = false;
     protected bool isBtnFetchOlderPostsDisabled { get; set; } = true;
     protected bool isBtnFetchRestPostsDisabled { get; set; } = true;
+    protected bool isBtnImportJsonFileDisabled { get; set; } = false;
     protected bool isBtnResetDisabled { get; set; } = true;
     // Checkbox 的勾選控制。
     protected bool isCBCheckAllChecked { get; set; }
@@ -297,7 +343,7 @@
         {
             if (string.IsNullOrEmpty(url))
             {
-                await AlertUtil.ShowErrorAlert("請輸入 YouTube 頻道網址。");
+                await AlertUtil.ShowToast("請輸入 YouTube 頻道網址。");
 
                 return;
             }
@@ -306,7 +352,7 @@
 
             if (string.IsNullOrEmpty(channelID))
             {
-                await AlertUtil.ShowErrorAlert("無法取得 YouTube 頻道的 ID，請確認您輸入的是正確的YouTube 頻道網址。");
+                await AlertUtil.ShowToast("無法取得 YouTube 頻道的 ID，請確認您輸入的是正確的YouTube 頻道網址。");
 
                 return;
             }
@@ -328,23 +374,45 @@
 
             if (initialPosts.Any())
             {
-                foreach (PostData postData in initialPosts)
+                // 當有已有貼文資料時。（e.g. 載入 JSON 檔案）
+                if (sharedPostDatas.Any())
                 {
-                    if (!sharedPostDatas.Any(n => n.PostID == postData.PostID))
+                    // 反向排序 initialPosts。
+                    initialPosts.Reverse();
+
+                    foreach (PostData postData in initialPosts)
                     {
-                        sharedPostDatas.Add(postData);
+                        if (!sharedPostDatas.Any(n => n.PostID == postData.PostID))
+                        {
+                            sharedPostDatas.Insert(0, postData);
+                        }
+                    }
+                }
+                else
+                {
+                    foreach (PostData postData in initialPosts)
+                    {
+                        if (!sharedPostDatas.Any(n => n.PostID == postData.PostID))
+                        {
+                            sharedPostDatas.Add(postData);
+                        }
                     }
                 }
 
                 isBtnFetchLatestPostsDisabled = true;
                 isBtnFetchOlderPostsDisabled = false;
                 isBtnFetchRestPostsDisabled = false;
+                isBtnImportJsonFileDisabled = true;
                 isBtnResetDisabled = false;
+            }
+            else
+            {
+                await AlertUtil.ShowToast("此 YouTube 頻道並無社群貼文可供獲取。");
             }
         }
         catch (Exception ex)
         {
-            await AlertUtil.ShowErrorAlert("錯誤", ex.ToString());
+            await AlertUtil.ShowErrorAlert(ex.Message);
         }
     }
 
@@ -361,7 +429,7 @@
                 isBtnFetchOlderPostsDisabled = true;
                 isBtnFetchRestPostsDisabled = true;
 
-                await AlertUtil.ShowErrorAlert("無法取得先前的社群貼文。");
+                await AlertUtil.ShowToast("無法取得先前的社群貼文。");
 
                 return;
             }
@@ -384,10 +452,14 @@
                     }
                 }
             }
+            else
+            {
+                await AlertUtil.ShowToast("此 YouTube 頻道並無先前的社群貼文可供獲取。");
+            }
         }
         catch (Exception ex)
         {
-            await AlertUtil.ShowErrorAlert("錯誤", ex.ToString());
+            await AlertUtil.ShowErrorAlert(ex.Message);
         }
     }
 
@@ -419,6 +491,8 @@
                         }
                     }
                 }
+
+                await DoEasyDelay();
             }
 
             if (string.IsNullOrEmpty(sharedYTConfig?.Continuation))
@@ -426,14 +500,14 @@
                 isBtnFetchOlderPostsDisabled = true;
                 isBtnFetchRestPostsDisabled = true;
 
-                await AlertUtil.ShowAlert("資訊", "已取得先前的全部社群貼文。");
+                await AlertUtil.ShowToast("已取得先前的全部社群貼文。");
 
                 return;
             }
         }
         catch (Exception ex)
         {
-            await AlertUtil.ShowErrorAlert("錯誤", ex.ToString());
+            await AlertUtil.ShowErrorAlert(ex.Message);
         }
     }
 
@@ -449,7 +523,9 @@
         isBtnFetchLatestPostsDisabled = false;
         isBtnFetchOlderPostsDisabled = true;
         isBtnFetchRestPostsDisabled = true;
+        isBtnImportJsonFileDisabled = false;
         isBtnResetDisabled = true;
+        isCBCheckAllChecked = false;
     }
 
     /// <summary>
@@ -503,18 +579,20 @@
                             sharedPostDatas.AddRange(exportData.PostDatas);
                         }
 
-                        await AlertUtil.ShowAlert("資訊", "已匯入 JSON 檔案。");
+                        isBtnResetDisabled = false;
+
+                        await AlertUtil.ShowToast("已匯入 JSON 檔案。");
                     }
                 }
                 else
                 {
-                    await AlertUtil.ShowWarningAlert("注意", "請選擇 JSON 檔案。");
+                    await AlertUtil.ShowToast("請選擇 JSON 檔案。");
                 }
             }
         }
         catch (Exception ex)
         {
-            await AlertUtil.ShowErrorAlert("錯誤", ex.ToString());
+            await AlertUtil.ShowErrorAlert(ex.Message);
         }
     }
 
@@ -529,7 +607,7 @@
         {
             if (!sharedPostDatas.Any())
             {
-                await AlertUtil.ShowErrorAlert($" 匯出 JSON 檔失敗，請先獲取 YouTube 社群貼文。");
+                await AlertUtil.ShowToast($"匯出 JSON 檔失敗，請先獲取 YouTube 社群貼文。");
 
                 return;
             }
@@ -559,17 +637,176 @@
 
             if (fileSaverResult.IsSuccessful)
             {
-                await AlertUtil.ShowAlert("資訊", $"檔案已儲存至：{fileSaverResult.FilePath}");
+                await AlertUtil.ShowToast($"檔案已儲存至：{fileSaverResult.FilePath}");
             }
             else
             {
-                await AlertUtil.ShowErrorAlert($"匯出 JSON 檔案失敗，錯誤訊息：{fileSaverResult.Exception.Message}");
+                await AlertUtil.ShowErrorAlert(fileSaverResult.Exception.Message);
             }
         }
         catch (Exception ex)
         {
-            await AlertUtil.ShowErrorAlert("錯誤", ex.ToString());
+            await AlertUtil.ShowErrorAlert(ex.Message);
         }
+    }
+
+    /// <summary>
+    /// 匯出 JSON 檔案
+    /// </summary>
+    /// <param name="postID">字串，貼文的 ID</param>
+    /// <param name="ct">CancellationToken</param>
+    /// <returns>Task</returns>
+    private async Task ExportJsonFile(string? postID, CancellationToken ct = default)
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(postID))
+            {
+                await AlertUtil.ShowToast($"發生錯誤，無效的貼文 ID：{postID}。");
+
+                return;
+            }
+
+            PostData? postData = sharedPostDatas.FirstOrDefault(n => n.PostID == postID);
+
+            if (postData == null)
+            {
+                await AlertUtil.ShowToast($"發生錯誤，找不到對應的貼文資料，貼文 ID：{postID}。");
+
+                return;
+            }
+
+            List<PostData> postDatas = new();
+
+            postDatas.Add(postData);
+
+            ExportData exportData = new()
+                {
+                    Url = urlYtCh,
+                    PostDatas = postDatas
+                };
+
+            string jsonContent = exportData.ToJsonString();
+
+            byte[] bytes = Encoding.UTF8.GetBytes(jsonContent);
+
+            using MemoryStream memoryStream = new(bytes);
+
+            FileSaverResult fileSaverResult = await FileSaver.Default
+                .SaveAsync(
+                    fileName: $"YouTube_Community_Post_{postID}_{DateTime.Now:yyyyMMddHHmmss}.json",
+                    stream: memoryStream,
+                    cancellationToken: ct);
+
+            if (fileSaverResult.IsSuccessful)
+            {
+                await AlertUtil.ShowToast($"檔案已儲存至：{fileSaverResult.FilePath}");
+            }
+            else
+            {
+                await AlertUtil.ShowErrorAlert(fileSaverResult.Exception.Message);
+            }
+        }
+        catch (Exception ex)
+        {
+            await AlertUtil.ShowErrorAlert(ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// 傳送貼文至 Discord
+    /// </summary>
+    /// <returns>Task</returns>
+    private async Task SendPostsToDiscord()
+    {
+        try
+        {
+            IEnumerable<PostData> selectedPostDatas = sharedPostDatas.Where(n => n.IsChecked);
+
+            if (!selectedPostDatas.Any())
+            {
+                await AlertUtil.ShowToast("請先勾選要傳送至 Discord 文字頻道的貼文。");
+
+                return;
+            }
+
+            string? urlDCWebhook = PreferencesUtil.GetStringValue(GlobalSet.Keys.UrlDCWebhook);
+
+            if (string.IsNullOrEmpty(urlDCWebhook))
+            {
+                await AlertUtil.ShowToast("請先至設定畫面設定 Discord Webhook 網址。");
+
+                return;
+            }
+
+            foreach (PostData postData in selectedPostDatas)
+            {
+                await DiscordUtil.SendToDiscord(postData, urlDCWebhook)
+                    .ContinueWith(async task => await DoEasyDelay());
+            }
+
+            await AlertUtil.ShowToast("已傳送貼文至 Discord 文字頻道。");
+        }
+        catch (Exception ex)
+        {
+            await AlertUtil.ShowErrorAlert(ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// 傳送貼文至 Discord
+    /// </summary>
+    /// <param name="postID">字串，貼文的 ID</param>
+    /// <returns>Task</returns>
+    private async Task SendPostToDiscord(string? postID)
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(postID))
+            {
+                await AlertUtil.ShowToast($"發生錯誤，無效的貼文 ID：{postID}。");
+
+                return;
+            }
+
+            PostData? postData = sharedPostDatas.FirstOrDefault(n => n.PostID == postID);
+
+            if (postData == null)
+            {
+                await AlertUtil.ShowToast($"發生錯誤，找不到對應的貼文資料，貼文 ID：{postID}。");
+
+                return;
+            }
+
+            string? urlDCWebhook = PreferencesUtil.GetStringValue(GlobalSet.Keys.UrlDCWebhook);
+
+            if (string.IsNullOrEmpty(urlDCWebhook))
+            {
+                await AlertUtil.ShowToast("請先至設定畫面設定 Discord Webhook 網址。");
+
+                return;
+            }
+
+            await DiscordUtil.SendToDiscord(postData, urlDCWebhook);
+
+            await AlertUtil.ShowToast("已傳送貼文至 Discord 文字頻道。");
+        }
+        catch (Exception ex)
+        {
+            await AlertUtil.ShowErrorAlert(ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// 執行簡易延遲
+    /// </summary>
+    /// <returns>Task</returns>
+    private async Task DoEasyDelay()
+    {
+        // 簡易的隨機減速機制。
+        int delayMs = RandomNumberGenerator.GetInt32(500, 1500);
+
+        await Task.Delay(delayMs);
     }
 
     /// <summary>
