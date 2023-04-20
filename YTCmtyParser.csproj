@@ -43,11 +43,20 @@
     <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net7.0-android|AnyCPU'">
       <DebugType>embedded</DebugType>
       <ApplicationId>com.rubujo.ytcmtyparser</ApplicationId>
+      <AndroidEnableMultiDex>True</AndroidEnableMultiDex>
+      <AndroidLinkTool>r8</AndroidLinkTool>
+      <EnableLLVM>True</EnableLLVM>
+      <AndroidKeyStore>False</AndroidKeyStore>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net7.0-android|AnyCPU'">
       <DebugType>embedded</DebugType>
       <ApplicationId>com.rubujo.ytcmtyparser</ApplicationId>
+      <AndroidPackageFormat>apk</AndroidPackageFormat>
+      <AndroidEnableMultiDex>True</AndroidEnableMultiDex>
+      <AndroidLinkTool>r8</AndroidLinkTool>
+      <EnableLLVM>True</EnableLLVM>
+      <AndroidKeyStore>False</AndroidKeyStore>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net7.0-ios|AnyCPU'">

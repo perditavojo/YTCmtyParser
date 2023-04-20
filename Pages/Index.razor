@@ -575,15 +575,15 @@
         {
             Dictionary<DevicePlatform, IEnumerable<string>> fileTypes = new()
             {
-                { DevicePlatform.iOS, new string[] { "json" } },
-                { DevicePlatform.WinUI, new string[] { "json" } },
-                { DevicePlatform.Tizen, new string[] { "json" } },
-                { DevicePlatform.tvOS, new string[] { "json" } },
-                { DevicePlatform.MacCatalyst, new string[] { "json" } },
-                { DevicePlatform.macOS, new string[] { "json" } },
-                { DevicePlatform.watchOS, new string[] { "json" } },
-                { DevicePlatform.Unknown, new string[] { "json" } },
-                { DevicePlatform.Android, new string[] { "json" } }
+                { DevicePlatform.iOS, new string[] { "public.json" } },
+                { DevicePlatform.WinUI, new string[] { ".json" } },
+                { DevicePlatform.Tizen, new string[] { "*/*" } },
+                { DevicePlatform.tvOS, new string[] { "public.json" } },
+                { DevicePlatform.MacCatalyst, new string[] { "public.json" } },
+                { DevicePlatform.macOS, new string[] { "public.json" } },
+                { DevicePlatform.watchOS, new string[] { "public.json" } },
+                { DevicePlatform.Unknown, new string[] { ".json" } },
+                { DevicePlatform.Android, new string[] { "application/json" } }
             };
 
             PickOptions pickOptions = new PickOptions()
