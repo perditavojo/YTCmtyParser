@@ -1,9 +1,23 @@
 ﻿@page "/about"
 
-<h1>關於</h1>
+@using System.Diagnostics;
+@using System.Reflection;
+
 <h3>YouTube 社群貼文解析器</h3>
-<p>基於 .NET 7 的 .NET MAUI Blazor 應用程式。</p>
+<div>
+    <p>
+        使用 <a href="https://dotnet.microsoft.com/en-us/" target="_parent">.NET 7</a> 建置的
+        <a href="https://learn.microsoft.com/en-us/aspnet/core/blazor/hybrid/tutorials/maui?view=aspnetcore-7.0&pivots=windows" target="_parent">.NET MAUI Blazor</a>
+        應用程式。
+    </p>
+    @if (version != null)
+    {
+        <p>版本：@version</p>
+    }
+</div>
 
 @code {
-
+    private string? version = Assembly.GetExecutingAssembly()
+        ?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.
+        InformationalVersion;
 }

@@ -34,4 +34,19 @@ public static partial class ListExtension
 
         return jsonContent;
     }
+
+    /// <summary>
+    /// 轉換成 JSON 字串
+    /// </summary>
+    /// <returns>字串</returns>
+    public static string ToJsonString(this List<WebhookData> list)
+    {
+        JsonSerializerOptions options = new()
+        {
+            Encoder = JavaScriptEncoder.Create(UnicodeRanges.All),
+            WriteIndented = true
+        };
+
+        return JsonSerializer.Serialize(value: list, options: options);
+    }
 }

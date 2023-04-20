@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Maui.Alerts;
+using Org.BouncyCastle.Asn1.IsisMtt.X509;
 
 namespace YTCmtyParser.Commons.Utils;
 
@@ -29,7 +30,10 @@ public class AlertUtil
     {
         if (Application.Current?.MainPage != null == true)
         {
-            await Application.Current.MainPage.DisplayAlert(title, message, cancel);
+            await Application.Current.MainPage.DisplayAlert(
+                title: title,
+                message: message,
+                cancel: cancel);
         }
     }
 
@@ -43,7 +47,10 @@ public class AlertUtil
     {
         if (Application.Current?.MainPage != null == true)
         {
-            await Application.Current.MainPage.DisplayAlert("警告", message, cancel);
+            await Application.Current.MainPage.DisplayAlert(
+                title: "警告",
+                message: message,
+                cancel: cancel);
         }
     }
 
@@ -57,7 +64,59 @@ public class AlertUtil
     {
         if (Application.Current?.MainPage != null == true)
         {
-            await Application.Current.MainPage.DisplayAlert("錯誤", message, cancel);
+            await Application.Current.MainPage.DisplayAlert(
+                title: "錯誤",
+                message: message,
+                cancel: cancel);
         }
+    }
+
+    /// <summary>
+    /// 顯示確認警報
+    /// </summary>
+    /// <param name="title">字串，標題</param>
+    /// <param name="message">字串，訊息</param>
+    /// <param name="cancel">字串，取消</param>
+    /// <returns>Task&lt;bool&gt;</returns>
+    public static async Task<bool?> ShowConfirmAlert(
+            string title,
+            string message,
+            string accept = "確認",
+            string cancel = "取消")
+    {
+        if (Application.Current?.MainPage != null == true)
+        {
+            return await Application.Current.MainPage.DisplayAlert(
+                title: title,
+                message: message,
+                accept: accept,
+                cancel: cancel);
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    ///  顯示行為表單
+    /// </summary>
+    /// <param name="title">字串，標題</param>
+    /// <param name="buttons">字串陣列，按鈕</param>
+    /// <param name="cancel">字串，取消</param>
+    /// <returns>Task&lt;string&gt;</returns>
+    public static async Task<string?> ShowActionSheet(
+            string title,
+            string?[]? buttons,
+            string cancel = "取消")
+    {
+        if (Application.Current?.MainPage != null == true)
+        {
+            return await Application.Current.MainPage.DisplayActionSheet(
+                title: title,
+                cancel: cancel,
+                destruction: null,
+                buttons: buttons);
+        }
+
+        return null;
     }
 }

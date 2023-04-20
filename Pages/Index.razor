@@ -7,6 +7,7 @@
 @using System.Security.Cryptography;
 @using YTApi.Commons.Models;
 @using YTApi.Commons;
+@using YTApi.Commons.Sets;
 @using YTCmtyParser.Commons.Extensions;
 @using YTCmtyParser.Commons.Utils;
 @using YTCmtyParser.Commons;
@@ -16,7 +17,6 @@
 @inject IHttpClientFactory httpClientFactory;
 @inject YTCmtyService ytCmtyService;
 
-<h1>獲取 YouTube 社群貼文</h1>
 <div class="card mb-2">
     <div class="card-body">
         <div class="col-12">
@@ -25,12 +25,14 @@
                     <label for="iYtChUrl" class="form-label">YouTube 頻道網址</label>
                     <input id="iYtChUrl" type="url"
                            class="form-control"
-                           @bind="urlYtCh"
-                           placeholder="YouTube 頻道網址"></input>
+                           @bind="ytChUrl"
+                           @bind:event="oninput"
+                           @onchange="async (evt) => await ParseUrl(evt.Value)"
+                           placeholder="網址"></input>
                 </div>
                 <div class="mb-2">
                     <button class="btn btn-primary mb-1"
-                            @onclick="async () => await FetchInitialPosts(urlYtCh)"
+                            @onclick="async () => await FetchInitialPosts(ytChUrl)"
                             disabled="@isBtnFetchLatestPostsDisabled">
                         <span class="oi oi-cloud-download" aria-hidden="true"></span>
                         &nbsp;
@@ -95,6 +97,13 @@
                                     <span class="oi oi-cloud-upload" aria-hidden="true"></span>
                                     &nbsp;
                                     傳送貼文至 Discord
+                                </button>
+                                &nbsp;
+                                <button class="btn btn-outline-danger mb-1"
+                                    @onclick="async () => await DeletePosts()">
+                                    <span class="oi oi-trash" aria-hidden="true"></span>
+                                    &nbsp;
+                                    刪除貼文
                                 </button>
                             </div>
                             <div class="col text-end">
@@ -183,6 +192,13 @@
                                     &nbsp;
                                     匯出 JSON 檔案
                                 </button>
+                                &nbsp;
+                                <button class="btn btn-outline-light mb-1"
+                                @onclick="async () => await DeletePost(postData.PostID)">
+                                    <span class="oi oi-trash" aria-hidden="true"></span>
+                                    &nbsp;
+                                    刪除貼文
+                                </button>
                             </div>
                             <hr />
                             @if (postData.ContentTexts?.Any() == true)
@@ -268,7 +284,7 @@
 }
 
 @code {
-    // 按鈕的啟用進用控制。
+    // 按鈕的啟用、禁用控制。
     protected bool isBtnFetchLatestPostsDisabled { get; set; } = false;
     protected bool isBtnFetchOlderPostsDisabled { get; set; } = true;
     protected bool isBtnFetchRestPostsDisabled { get; set; } = true;
@@ -283,8 +299,33 @@
     private List<PostData> sharedPostDatas = new();
 
     // 使用者輸入的值。
-    private string? urlYtCh = string.Empty;
-    private string urlDCWebhook = string.Empty;
+    private string? ytChUrl = string.Empty;
+
+    /// <summary>
+    /// 解析網址
+    /// </summary>
+    /// <param name="inputValue">object</param>
+    private async Task ParseUrl(object? inputValue)
+    {
+        try
+        {
+            string? value = Convert.ToString(inputValue);
+
+            if (string.IsNullOrEmpty(value))
+            {
+                return;
+            }
+
+            if (value.StartsWith("@"))
+            {
+                ytChUrl = $"{StringSet.Origin}/{value}";
+            }
+        }
+        catch (Exception ex)
+        {
+            await AlertUtil.ShowErrorAlert(ex.Message);
+        }
+    }
 
     /// <summary>
     /// 執行全選貼文 Checkbox 點擊
@@ -566,7 +607,7 @@
 
                     if (exportData != null)
                     {
-                        urlYtCh = exportData.Url;
+                        ytChUrl = exportData.Url;
 
                         if (exportData.PostDatas != null)
                         {
@@ -614,7 +655,7 @@
 
             ExportData exportData = new()
                 {
-                    Url = urlYtCh,
+                    Url = ytChUrl,
                     PostDatas = postDatas
                 };
 
@@ -646,7 +687,7 @@
     }
 
     /// <summary>
-    /// 匯出 JSON 檔案
+    /// 匯出 JSON 檔案（指定貼文）
     /// </summary>
     /// <param name="postID">字串，貼文的 ID</param>
     /// <param name="ct">CancellationToken</param>
@@ -677,7 +718,7 @@
 
             ExportData exportData = new()
                 {
-                    Url = urlYtCh,
+                    Url = ytChUrl,
                     PostDatas = postDatas
                 };
 
@@ -725,18 +766,16 @@
                 return;
             }
 
-            string? urlDCWebhook = PreferencesUtil.GetStringValue(GlobalSet.Keys.UrlDCWebhook);
+            string? webhookUrl = await GetWebhookUrl();
 
-            if (string.IsNullOrEmpty(urlDCWebhook))
+            if (string.IsNullOrEmpty(webhookUrl))
             {
-                await AlertUtil.ShowToast("請先至設定畫面設定 Discord Webhook 網址。");
-
                 return;
             }
 
             foreach (PostData postData in selectedPostDatas)
             {
-                await DiscordUtil.SendToDiscord(postData, urlDCWebhook)
+                await DiscordUtil.SendToDiscord(postData, webhookUrl)
                     .ContinueWith(async task => await DoEasyDelay());
             }
 
@@ -749,7 +788,7 @@
     }
 
     /// <summary>
-    /// 傳送貼文至 Discord
+    /// 傳送貼文至 Discord（指定貼文）
     /// </summary>
     /// <param name="postID">字串，貼文的 ID</param>
     /// <returns>Task</returns>
@@ -773,18 +812,94 @@
                 return;
             }
 
-            string? urlDCWebhook = PreferencesUtil.GetStringValue(GlobalSet.Keys.UrlDCWebhook);
+            string? webhookUrl = await GetWebhookUrl();
 
-            if (string.IsNullOrEmpty(urlDCWebhook))
+            if (string.IsNullOrEmpty(webhookUrl))
             {
-                await AlertUtil.ShowToast("請先至設定畫面設定 Discord Webhook 網址。");
+                return;
+            }
+
+            await DiscordUtil.SendToDiscord(postData, webhookUrl);
+
+            await AlertUtil.ShowToast("已傳送貼文至 Discord 文字頻道。");
+        }
+        catch (Exception ex)
+        {
+            await AlertUtil.ShowErrorAlert(ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// 刪除貼文
+    /// </summary>
+    /// <returns>Task</returns>
+    private async Task DeletePosts()
+    {
+        try
+        {
+            bool? confirm = await AlertUtil.ShowConfirmAlert(
+                "刪除貼文",
+                "您是否要刪除已勾選的貼文？");
+
+            if (confirm == false)
+            {
+                return;
+            }
+
+            if (!sharedPostDatas.Any(n => n.IsChecked))
+            {
+                await AlertUtil.ShowToast("請先勾選要刪除的貼文。");
 
                 return;
             }
 
-            await DiscordUtil.SendToDiscord(postData, urlDCWebhook);
+            sharedPostDatas.RemoveAll(n => n.IsChecked);
 
-            await AlertUtil.ShowToast("已傳送貼文至 Discord 文字頻道。");
+            await AlertUtil.ShowToast("已刪除勾選的貼文。");
+        }
+        catch (Exception ex)
+        {
+            await AlertUtil.ShowErrorAlert(ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// 刪除貼文（指定貼文）
+    /// </summary>
+    /// <param name="postID">字串，貼文的 ID</param>
+    /// <returns>Task</returns>
+    private async Task DeletePost(string? postID)
+    {
+        try
+        {
+            bool? confirm = await AlertUtil.ShowConfirmAlert(
+                "刪除貼文",
+                "您是否要刪除此貼文？");
+
+            if (confirm == false)
+            {
+                return;
+            }
+
+            if (string.IsNullOrEmpty(postID))
+            {
+                await AlertUtil.ShowToast($"發生錯誤，無效的貼文 ID：{postID}。");
+
+                return;
+            }
+
+            PostData? postData = sharedPostDatas.FirstOrDefault(n => n.PostID == postID);
+
+            if (postData == null)
+            {
+                await AlertUtil.ShowToast($"發生錯誤，找不到對應的貼文資料，貼文 ID：{postID}。");
+
+                return;
+            }
+
+            sharedPostDatas.Remove(postData);
+
+            await AlertUtil.ShowToast("已刪除貼文。");
         }
         catch (Exception ex)
         {
@@ -825,6 +940,8 @@
 
         bool? useCookies = PreferencesUtil.GetBooleanValue(GlobalSet.Keys.UseCookies);
 
+        string tempCookies = PreferencesUtil.GetStringValue(GlobalSet.Keys.Cookies) ?? string.Empty;
+
         if (DeviceInfo.Platform == DevicePlatform.WinUI)
         {
             string browserType = PreferencesUtil.GetStringValue(GlobalSet.Keys.BrowserType) ?? string.Empty;
@@ -832,17 +949,24 @@
 
             if (useCookies == true)
             {
-                List<BrowserUtil.Cookie> listCookies = BrowserUtil.GetCookies(
-                    browser: GetBrowserType(browserType),
-                    profileName: profileName,
-                    hostKey: ".youtube.com");
+                if (string.IsNullOrEmpty(tempCookies))
+                {
+                    List<BrowserUtil.Cookie> listCookies = BrowserUtil.GetCookies(
+                        browser: GetBrowserType(browserType),
+                        profileName: profileName,
+                        hostKey: ".youtube.com");
 
-                cookies = string.Join(";", listCookies.Select(n => $"{n.Name}={n.Value}"));
+                    cookies = string.Join(";", listCookies.Select(n => $"{n.Name}={n.Value}"));
+                }
+                else
+                {
+                    cookies = tempCookies;
+                }
             }
         }
         else
         {
-            cookies = PreferencesUtil.GetStringValue(GlobalSet.Keys.Cookies) ?? string.Empty;
+            cookies = useCookies == true ? tempCookies : string.Empty;
         }
 
         return cookies;
@@ -867,5 +991,101 @@
             nameof(BrowserUtil.BrowserType.MozillaFirefox) => BrowserUtil.BrowserType.MozillaFirefox,
             _ => BrowserUtil.BrowserType.GoogleChrome
         };
+    }
+
+    /// <summary>
+    /// 取得 Webhook
+    /// </summary>
+    /// <returns> Task&lt;List&lt;WebhookData&gt;&gt;</returns>
+    private async Task<List<WebhookData>?> GetWebhooks()
+    {
+        try
+        {
+            if (File.Exists(GlobalSet.Files.WebhooksJson))
+            {
+                using FileStream fileStream = File.OpenRead(GlobalSet.Files.WebhooksJson);
+
+                return await JsonSerializer
+                    .DeserializeAsync<List<WebhookData>>(fileStream);
+            }
+        }
+        catch (Exception ex)
+        {
+            await AlertUtil.ShowErrorAlert(ex.Message);
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// 取得 Webhook 名稱組
+    /// </summary>
+    /// <param name="webhooks">List&lt;WebhookData&gt;</param>
+    /// <returns>Task&lt;string[]&gt;</returns>
+    private async Task<string?[]?> GetWebhookNames(List<WebhookData>? webhooks)
+    {
+        try
+        {
+            if (webhooks == null)
+            {
+                return null;
+            }
+
+            return webhooks.Select(n => n.Name).ToArray();
+        }
+        catch (Exception ex)
+        {
+            await AlertUtil.ShowErrorAlert(ex.Message);
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// 取得 Webhook 的網址
+    /// </summary>
+    /// <returns>Task&lt;string&gt;</returns>
+    private async Task<string?> GetWebhookUrl()
+    {
+        try
+        {
+            List<WebhookData>? webhooks = await GetWebhooks();
+
+            string?[]? buttons = await GetWebhookNames(webhooks);
+
+            if (buttons == null || buttons.Length <= 0)
+            {
+                await AlertUtil.ShowToast("請先至管理 Webhook 畫面新增 Webhook。");
+
+                return null;
+            }
+
+            string? webhookName = await AlertUtil.ShowActionSheet(
+                title: "請選擇要使用的 Webhook",
+                buttons: buttons);
+
+            if (string.IsNullOrEmpty(webhookName) || webhookName == "取消")
+            {
+                // 點擊 Alert 外面，以讓 Alert 關閉，或是點擊取消按鈕。
+                return null;
+            }
+
+            string? webhookUrl = webhooks?.FirstOrDefault(n => n.Name == webhookName)?.Url;
+
+            if (string.IsNullOrEmpty(webhookUrl))
+            {
+                await AlertUtil.ShowToast($"找不到 Webhook \"{webhookName}\" 的 Webhook 網址。");
+
+                return null;
+            }
+
+            return webhookUrl;
+        }
+        catch (Exception ex)
+        {
+            await AlertUtil.ShowErrorAlert(ex.Message);
+        }
+
+        return null;
     }
 }

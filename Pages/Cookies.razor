@@ -1,24 +1,17 @@
-﻿@page "/setting"
+﻿@page "/cookies"
 
 @using System.Text.RegularExpressions;
 @using System.Diagnostics;
+@using System.Text;
+@using CommunityToolkit.Maui.Storage;
+@using YTApi.Commons.Models;
+@using YTCmtyParser.Commons.Extensions;
 @using YTCmtyParser.Commons.Utils;
 @using YTCmtyParser.Data;
 
-<h1>設定</h1>
 <div class="card mb-2">
     <div class="card-body">
         <div class="col-12">
-            <div class="mb-2">
-                <label for="iDCWebhookUrl" class="form-label">Discord Webhook 網址</label>
-                <input id="iDCWebhookUrl" type="url"
-                       class="form-control"
-                       @bind="sharedUrlDCWebhook"
-                       placeholder="Discord Webhook 網址"></input>
-                <div class="form-text text-danger">
-                    ※只支援 Discord 文字頻道的 Discord Webhook 網址。
-                </div>
-            </div>
             <div class="mb-2">
                 @if (DeviceInfo.Platform == DevicePlatform.WinUI)
                 {
@@ -51,23 +44,28 @@
                         </select>
                         <label for="sBrowserType">網頁瀏覽器</label>
                     </div>
-                    <label for="iProfileName" class="form-label">網頁瀏覽器的設定檔名稱／路徑</label>
+                    <label for="iProfileName" class="form-label">設定檔名稱／路徑</label>
                     <input id="iProfileName" type="text"
                            class="form-control"
                        @bind="sharedProfileName"
                            placeholder="留空以使用預設值"></input>
                 }
-                else
-                {
-                    <div class="form-floating">
-                        <textarea class="form-control"
-                                  placeholder="請貼上 cookies.txt 的內容"
-                                  id="tCookies"
-                                  style="height: 150px;"
+            </div>
+            <div class="mb-2">
+                <div class="form-floating">
+                    <textarea class="form-control"
+                              placeholder="請貼上 cookies.txt 的內容"
+                              id="tCookies"
+                              style="height: 150px;"
                               @bind="@sharedCookies"
                               @bind:event="oninput"
                               @onchange="async (evt) => await ParseCookies(evt.Value)"></textarea>
-                        <label for="tCookies">cookies.txt</label>
+                    <label for="tCookies">cookies.txt</label>
+                </div>
+                @if (DeviceInfo.Platform == DevicePlatform.WinUI)
+                {
+                    <div class="form-text text-danger">
+                        ※當 cookies.txt 欄位有值時，則會優先使用 cookies.txt 欄位的內容。
                     </div>
                 }
             </div>
@@ -97,15 +95,7 @@
 </div>
 
 @code {
-    // 來源：https://github.com/discord-net/Discord.Net/blob/dev/src/Discord.Net.Webhook/DiscordWebhookClient.cs#L52
-    private static Regex WebhookUrlRegex = new Regex(
-        @"^.*(discord|discordapp)\.com\/api\/webhooks\/([\d]+)\/([a-z0-9_-]+)$",
-        RegexOptions.Compiled |
-        RegexOptions.IgnoreCase |
-        RegexOptions.CultureInvariant);
-
     // 變數。
-    private string? sharedUrlDCWebhook = string.Empty;
     private string? sharedBrowserType = string.Empty;
     private string? sharedProfileName = string.Empty;
     private string? sharedCookies = string.Empty;
@@ -126,15 +116,10 @@
     {
         try
         {
-            bool hasUrlDCWebhook = PreferencesUtil.HasKey(GlobalSet.Keys.UrlDCWebhook);
             bool hasBrowserType = PreferencesUtil.HasKey(GlobalSet.Keys.BrowserType);
             bool hasProfileName = PreferencesUtil.HasKey(GlobalSet.Keys.ProfileName);
             bool hasCookies = PreferencesUtil.HasKey(GlobalSet.Keys.Cookies);
             bool hasUseCookies = PreferencesUtil.HasKey(GlobalSet.Keys.UseCookies);
-
-            sharedUrlDCWebhook = hasUrlDCWebhook ?
-                PreferencesUtil.GetStringValue(GlobalSet.Keys.UrlDCWebhook) :
-                string.Empty;
 
             sharedBrowserType = hasBrowserType ?
                 PreferencesUtil.GetStringValue(GlobalSet.Keys.BrowserType) :
@@ -166,23 +151,6 @@
     {
         try
         {
-            if (!string.IsNullOrEmpty(sharedUrlDCWebhook) &&
-                !WebhookUrlRegex.IsMatch(sharedUrlDCWebhook))
-            {
-                sharedUrlDCWebhook = string.Empty;
-
-                await AlertUtil.ShowToast("請輸入正確的 Discord Webhook 網址。");
-
-                return;
-            }
-            else
-            {
-                if (PreferencesUtil.GetStringValue(GlobalSet.Keys.UrlDCWebhook) != sharedUrlDCWebhook)
-                {
-                    PreferencesUtil.SetValue(GlobalSet.Keys.UrlDCWebhook, sharedUrlDCWebhook);
-                }
-            }
-
             if (PreferencesUtil.GetStringValue(GlobalSet.Keys.BrowserType) != sharedBrowserType)
             {
                 PreferencesUtil.SetValue(GlobalSet.Keys.BrowserType, sharedBrowserType);
@@ -200,12 +168,10 @@
 
             if (PreferencesUtil.GetBooleanValue(GlobalSet.Keys.UseCookies) != sharedUseCookies)
             {
-                // TODO: 2023-04-19 待處裡。
-
                 PreferencesUtil.SetValue(GlobalSet.Keys.UseCookies, sharedUseCookies);
             }
 
-            await AlertUtil.ShowToast("已儲存設定。");
+            await AlertUtil.ShowToast("已儲存 Cookies 設定。");
         }
         catch (Exception ex)
         {
@@ -225,7 +191,7 @@
 
             await LoadPrefs();
 
-            await AlertUtil.ShowToast("已清除所有設定。");
+            await AlertUtil.ShowToast("已清除 Cookies 設定。");
         }
         catch (Exception ex)
         {

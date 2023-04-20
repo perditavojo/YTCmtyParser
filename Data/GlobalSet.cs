@@ -11,11 +11,6 @@ public static class GlobalSet
     public static class Keys
     {
         /// <summary>
-        /// UrlDCWebhook
-        /// </summary>
-        public static readonly string UrlDCWebhook = "UrlDCWebhook";
-
-        /// <summary>
         /// BrowserType
         /// </summary>
         public static readonly string BrowserType = "BrowserType";
@@ -34,5 +29,16 @@ public static class GlobalSet
         /// UseCookies
         /// </summary>
         public static readonly string UseCookies = "UseCookies";
+    }
+
+    /// <summary>
+    /// 檔案
+    /// </summary>
+    public static class Files
+    {
+        /// <summary>
+        /// Webhooj.json
+        /// </summary>
+        public static readonly string WebhooksJson = Path.Combine(FileSystem.Current.AppDataDirectory, "Webhooks.json");
     }
 }
