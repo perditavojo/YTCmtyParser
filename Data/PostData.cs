@@ -8,6 +8,12 @@ namespace YTApi.Commons.Models;
 public partial class PostData
 {
     /// <summary>
+    /// 作者頭像資料統一資源標識符
+    /// </summary>
+    [JsonPropertyName("authorThumbnailDataUri")]
+    public string? AuthorThumbnailDataUri { get; set; }
+
+    /// <summary>
     /// 已勾選
     /// </summary>
     [JsonIgnore]

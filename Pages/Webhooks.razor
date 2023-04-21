@@ -1,9 +1,8 @@
 ﻿@page "/webhooks"
 
-@using System.Text.RegularExpressions;
-@using System.Diagnostics;
-@using System.Text;
 @using CommunityToolkit.Maui.Storage;
+@using System.Text;
+@using System.Text.RegularExpressions;
 @using System.Text.Json;
 @using YTApi.Commons.Models;
 @using YTCmtyParser.Commons.Extensions;
@@ -40,21 +39,21 @@
         </div>
     </div>
     <div class="table-responsive">
-        <table class="table table-hover">
+        <table class="table table-striped table-hover">
             <thead>
-                <tr>
-                    <th scope="col" class="text-center" style="width: 10%;">操作</th>
-                    <th scope="col" class="text-center" style="width: 40%;">頻道名稱</th>
-                    <th scope="col" class="text-center">Webhook 網址</th>
+                <tr class="table-primary text-secondary">
+                    <th scope="col">#</th>
+                    <th scope="col">頻道名稱</th>
+                    <th scope="col">Webhook 網址</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody class="table-group-divider">
                 @if (sharedWebhooks?.Any() == true)
                 {
                     @foreach (WebhookData webhookData in sharedWebhooks)
                     {
                         <tr>
-                            <th scope="row" class="text-center">
+                            <th scope="row">
                                 <button class="btn btn-outline-danger btn-sm mb-1"
                                 @onclick="async () => await DeleteWebhook(webhookData.Name)">
                                     <span class="oi oi-trash" aria-hidden="true"></span>

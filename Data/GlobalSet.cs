@@ -11,12 +11,12 @@ public static class GlobalSet
     public static class Keys
     {
         /// <summary>
-        /// BrowserType
+        /// 網頁瀏覽器類型
         /// </summary>
         public static readonly string BrowserType = "BrowserType";
 
         /// <summary>
-        /// ProfileName
+        /// 設定檔名稱
         /// </summary>
         public static readonly string ProfileName = "ProfileName";
 
@@ -26,9 +26,14 @@ public static class GlobalSet
         public static readonly string Cookies = "Cookies";
 
         /// <summary>
-        /// UseCookies
+        /// 使用 Cookies
         /// </summary>
         public static readonly string UseCookies = "UseCookies";
+
+        /// <summary>
+        /// 啟用設定資料統一資源標識符
+        /// </summary>
+        public static readonly string EnableSetDataUri = "EnableSetDataUri";
     }
 
     /// <summary>

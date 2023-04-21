@@ -1,19 +1,19 @@
 ﻿@page "/"
 
-@using System.Text.Json;
 @using CommunityToolkit.Maui.Alerts;
 @using CommunityToolkit.Maui.Storage;
-@using System.Text;
+@using Microsoft.Maui.Controls;
 @using System.Security.Cryptography;
-@using YTApi.Commons.Models;
+@using System.Text;
+@using System.Text.Json;
 @using YTApi.Commons;
+@using YTApi.Commons.Models;
 @using YTApi.Commons.Sets;
+@using YTCmtyParser.Commons;
 @using YTCmtyParser.Commons.Extensions;
 @using YTCmtyParser.Commons.Utils;
-@using YTCmtyParser.Commons;
 @using static YTCmtyParser.Commons.Utils.BrowserUtil;
 @using YTCmtyParser.Data;
-@using Microsoft.Maui.Controls;
 @inject IHttpClientFactory httpClientFactory;
 @inject YTCmtyService ytCmtyService;
 
@@ -54,6 +54,17 @@
                         &nbsp;
                         獲取全部的社群貼文
                     </button>
+                </div>
+                <div class="mb-2">
+                    <div class="form-check">
+                        <input id="cbSetDataUri"
+                               type="checkbox"
+                               class="form-check-input"
+                               @bind="enableSetDataUri"
+                               @bind:event="oninput"
+                               @onchange="(evt) => SaveSetting(evt.Value)" />
+                        <label for="cbSetDataUri" class="form-check-label">設定資料統一資源標識符</label>&nbsp;
+                    </div>
                 </div>
                 <div>
                     <button class="btn btn-outline-primary mb-1"
@@ -305,16 +316,64 @@
     protected bool isBtnResetDisabled { get; set; } = true;
     // Checkbox 的勾選控制。
     protected bool isCBCheckAllChecked { get; set; }
+    protected bool enableSetDataUri { get; set; } = false;
 
     // 共用變數。
     private YTConfig? sharedYTConfig;
     private string sharedReferer = string.Empty;
     private List<PostData> sharedPostDatas = new();
-
-    private bool enableSetDataUri = false;
-
-    // 使用者輸入的值。
     private string? ytChUrl = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadPrefs();
+
+        await Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// 載入設定
+    /// </summary>
+    /// <returns>Task</returns>
+    private async Task LoadPrefs()
+    {
+        try
+        {
+            bool hasEnableSetDataUrl = PreferencesUtil
+                .HasKey(GlobalSet.Keys.EnableSetDataUri);
+
+            if (hasEnableSetDataUrl)
+            {
+                enableSetDataUri = PreferencesUtil
+                    .GetBooleanValue(GlobalSet.Keys.EnableSetDataUri) ?? false;
+            }
+        }
+        catch (Exception ex)
+        {
+            await AlertUtil.ShowErrorAlert(ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// 儲存設定
+    /// </summary>
+    /// <param name="inputValue">object</param>
+    /// <returns>Task</returns>
+    private async Task SaveSetting(object? inputValue)
+    {
+        try
+        {
+            bool value = Convert.ToBoolean(inputValue);
+
+            PreferencesUtil.SetValue(GlobalSet.Keys.EnableSetDataUri, value);
+
+            await AlertUtil.ShowToast($"{(value ? "已啟用" : "已停用")}設定資料統一資源標識符");
+        }
+        catch (Exception ex)
+        {
+            await AlertUtil.ShowErrorAlert(ex.Message);
+        }
+    }
 
     /// <summary>
     /// 解析網址
@@ -1157,9 +1216,9 @@
     }
 
     /// <summary>
-    /// 設定 PostData 的 Data URI
+    /// 設定 PostData 的資料統一資源標識符
     /// </summary>
-    /// <param name="postData">AttachmentData</param>
+    /// <param name="postData">PostData</param>
     /// <returns>Task&lt;string&gt;></returns>
     private async Task<string?> SetDataUri(PostData postData)
     {
@@ -1193,7 +1252,7 @@
     }
 
     /// <summary>
-    /// 設定 AttachmentData 的 Data URI
+    /// 設定 AttachmentData 的資料統一資源標識符
     /// </summary>
     /// <param name="attachmentData">AttachmentData</param>
     /// <returns>Task&lt;string&gt;></returns>
