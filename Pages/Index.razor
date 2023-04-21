@@ -165,10 +165,15 @@
                                             @postData.VoteCount?.TrimStart().TrimEnd()
                                         </div>
                                     </div>
+                                    @{
+                                        string? authorThumbnailUrl = string.IsNullOrEmpty(postData.AuthorThumbnailDataUri) ?
+                                        postData.AuthorThumbnailUrl :
+                                        postData.AuthorThumbnailDataUri;
+                                    }
                                     <div class="col-md-6 text-end">
                                         <a href="@postData.AuthorThumbnailUrl" target="_blank">
                                             <img class="img-thumbnail"
-                                                 src="@postData.AuthorThumbnailUrl"
+                                                 src="@authorThumbnailUrl"
                                                  alt="@postData.AuthorText">
                                         </a>
                                         &nbsp;
@@ -228,8 +233,12 @@
                                 {
                                     VideoData? videoData = attachmentData.VideoData;
 
+                                    string? attachmentUrl = string.IsNullOrEmpty(attachmentData.DataUri) ?
+                                    videoData?.ThumbnailUrl :
+                                    attachmentData.DataUri;
+
                                     <a href="@videoData?.ThumbnailUrl" target="_blank">
-                                        <img class="card-img-top" src="@videoData?.ThumbnailUrl" alt="影片的預覽圖">
+                                        <img class="card-img-top" src="@attachmentUrl" alt="影片的預覽圖">
                                     </a>
                                     <div class="card-body">
                                         <h5 class="card-title">
@@ -261,8 +270,12 @@
                                 }
                                 else
                                 {
+                                    string? attachmentUrl = string.IsNullOrEmpty(attachmentData.DataUri) ?
+                                    attachmentData.Url :
+                                    attachmentData.DataUri;
+
                                     <a href="@attachmentData.Url" target="_blank">
-                                        <img class="card-img-bottom" src="@attachmentData.Url" alt="附件 @idx">
+                                        <img class="card-img-bottom" src="@attachmentUrl" alt="附件 @idx">
                                     </a>
                                 }
 
@@ -297,6 +310,8 @@
     private YTConfig? sharedYTConfig;
     private string sharedReferer = string.Empty;
     private List<PostData> sharedPostDatas = new();
+
+    private bool enableSetDataUri = false;
 
     // 使用者輸入的值。
     private string? ytChUrl = string.Empty;
@@ -420,6 +435,19 @@
                     {
                         if (!sharedPostDatas.Any(n => n.PostID == postData.PostID))
                         {
+                            if (enableSetDataUri)
+                            {
+                                await SetDataUri(postData);
+
+                                if (postData.Attachments != null)
+                                {
+                                    foreach (AttachmentData attachmentData in postData.Attachments)
+                                    {
+                                        await SetDataUri(attachmentData);
+                                    }
+                                }
+                            }
+
                             sharedPostDatas.Insert(0, postData);
                         }
                     }
@@ -430,6 +458,19 @@
                     {
                         if (!sharedPostDatas.Any(n => n.PostID == postData.PostID))
                         {
+                            if (enableSetDataUri)
+                            {
+                                await SetDataUri(postData);
+
+                                if (postData.Attachments != null)
+                                {
+                                    foreach (AttachmentData attachmentData in postData.Attachments)
+                                    {
+                                        await SetDataUri(attachmentData);
+                                    }
+                                }
+                            }
+
                             sharedPostDatas.Add(postData);
                         }
                     }
@@ -484,6 +525,19 @@
                 {
                     if (!sharedPostDatas.Any(n => n.PostID == postData.PostID))
                     {
+                        if (enableSetDataUri)
+                        {
+                            await SetDataUri(postData);
+
+                            if (postData.Attachments != null)
+                            {
+                                foreach (AttachmentData attachmentData in postData.Attachments)
+                                {
+                                    await SetDataUri(attachmentData);
+                                }
+                            }
+                        }
+
                         sharedPostDatas.Add(postData);
                     }
                 }
@@ -523,6 +577,19 @@
                     {
                         if (!sharedPostDatas.Any(n => n.PostID == postData.PostID))
                         {
+                            if (enableSetDataUri)
+                            {
+                                await SetDataUri(postData);
+
+                                if (postData.Attachments != null)
+                                {
+                                    foreach (AttachmentData attachmentData in postData.Attachments)
+                                    {
+                                        await SetDataUri(attachmentData);
+                                    }
+                                }
+                            }
+
                             sharedPostDatas.Add(postData);
                         }
                     }
@@ -1080,6 +1147,90 @@
             }
 
             return webhookUrl;
+        }
+        catch (Exception ex)
+        {
+            await AlertUtil.ShowErrorAlert(ex.Message);
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// 設定 PostData 的 Data URI
+    /// </summary>
+    /// <param name="postData">AttachmentData</param>
+    /// <returns>Task&lt;string&gt;></returns>
+    private async Task<string?> SetDataUri(PostData postData)
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(postData.AuthorThumbnailUrl))
+            {
+                return null;
+            }
+
+            byte[]? imageBytes = await DiscordUtil.GetImageBytes(postData.AuthorThumbnailUrl);
+
+            if (imageBytes == null)
+            {
+                return null;
+            }
+
+            if (postData != null)
+            {
+                postData.AuthorThumbnailDataUri = $"data:image/jpeg;base64,{Convert.ToBase64String(imageBytes)}";
+            }
+
+            return postData?.AuthorThumbnailDataUri;
+        }
+        catch (Exception ex)
+        {
+            await AlertUtil.ShowErrorAlert(ex.Message);
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// 設定 AttachmentData 的 Data URI
+    /// </summary>
+    /// <param name="attachmentData">AttachmentData</param>
+    /// <returns>Task&lt;string&gt;></returns>
+    private async Task<string?> SetDataUri(AttachmentData attachmentData)
+    {
+        try
+        {
+            if (attachmentData.IsVideo)
+            {
+                if (string.IsNullOrEmpty(attachmentData?.VideoData?.ThumbnailUrl))
+                {
+                    return null;
+                }
+            }
+            else
+            {
+                if (string.IsNullOrEmpty(attachmentData.Url))
+                {
+                    return null;
+                }
+            }
+
+            string? imageUrl = attachmentData.IsVideo ? attachmentData?.VideoData?.ThumbnailUrl : attachmentData.Url;
+
+            byte[]? imageBytes = await DiscordUtil.GetImageBytes(imageUrl);
+
+            if (imageBytes == null)
+            {
+                return null;
+            }
+
+            if (attachmentData != null)
+            {
+                attachmentData.DataUri = $"data:image/jpeg;base64,{Convert.ToBase64String(imageBytes)}";
+            }
+
+            return attachmentData?.DataUri;
         }
         catch (Exception ex)
         {

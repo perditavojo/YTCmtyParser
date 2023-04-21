@@ -32,6 +32,12 @@ public partial class PostData
     public string? AuthorThumbnailUrl { get; set; }
 
     /// <summary>
+    /// 作者頭像 Data URI
+    /// </summary>
+    [JsonPropertyName("authorThumbnailDataUri")]
+    public string? AuthorThumbnailDataUri { get; set; }
+
+    /// <summary>
     /// 內容文字
     /// </summary>
     [JsonPropertyName("contentTexts")]
