@@ -16,7 +16,7 @@
         <ApplicationTitle>YTCmtyParser</ApplicationTitle>
 
         <!-- App Identifier -->
-        <ApplicationId>com.companyname.ytcmtyparser</ApplicationId>
+        <ApplicationId>com.rubujo.ytcmtyparser</ApplicationId>
         <ApplicationIdGuid>D3882FEC-CD66-450F-9D99-ADF6EFB74CAD</ApplicationIdGuid>
 
         <!-- Versions -->
@@ -109,7 +109,7 @@
 
     <ItemGroup>
         <PackageReference Include="AngleSharp" Version="1.0.1" />
-        <PackageReference Include="BouncyCastle.Cryptography" Version="2.2.0" />
+        <PackageReference Include="BouncyCastle.Cryptography" Version="2.2.1" />
         <PackageReference Include="CommunityToolkit.Maui" Version="5.1.0" />
         <PackageReference Include="discord-webhook-client" Version="3.1.0" />
         <PackageReference Include="Microsoft.Data.Sqlite" Version="7.0.5" />

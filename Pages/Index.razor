@@ -21,6 +21,23 @@
     <div class="card-body">
         <div class="col-12">
             <div class="row">
+                <div>
+                    <button class="btn btn-outline-primary mb-1"
+                            @onclick="async () => await ImportJsonFile()"
+                            disabled="@isBtnImportJsonFileDisabled">
+                        <span class="oi oi-data-transfer-upload" aria-hidden="true"></span>
+                        &nbsp;
+                        載入 JSON 檔案
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="card mb-2">
+    <div class="card-body">
+        <div class="col-12">
+            <div class="row">
                 <div class="mb-2">
                     <label for="iYtChUrl" class="form-label">YouTube 頻道網址</label>
                     <input id="iYtChUrl" type="url"
@@ -39,7 +56,7 @@
                         獲取最新的社群貼文
                     </button>
                     &nbsp;
-                    <button class="btn btn-outline-secondary mb-1"
+                    <button class="btn btn-outline-primary mb-1"
                             @onclick="async () => await FetchOlderPosts()"
                             disabled="@isBtnFetchOlderPostsDisabled">
                         <span class="oi oi-cloud-download" aria-hidden="true"></span>
@@ -47,12 +64,12 @@
                         獲取先前的社群貼文
                     </button>
                     &nbsp;
-                    <button class="btn btn-outline-warning mb-1"
+                    <button class="btn btn-outline-primary mb-1"
                             @onclick="async () => await FetchRestPosts()"
                             disabled="@isBtnFetchRestPostsDisabled">
                         <span class="oi oi-cloud-download" aria-hidden="true"></span>
                         &nbsp;
-                        獲取全部的社群貼文
+                        獲取剩餘的社群貼文
                     </button>
                 </div>
                 <div class="mb-2">
@@ -66,15 +83,7 @@
                         <label for="cbSetDataUri" class="form-check-label">設定資料統一資源標識符</label>&nbsp;
                     </div>
                 </div>
-                <div>
-                    <button class="btn btn-outline-primary mb-1"
-                            @onclick="async () => await ImportJsonFile()"
-                            disabled="@isBtnImportJsonFileDisabled">
-                        <span class="oi oi-data-transfer-upload" aria-hidden="true"></span>
-                        &nbsp;
-                        載入 JSON 檔案
-                    </button>
-                    &nbsp;
+                <div class="text-end">
                     <button class="btn btn-outline-danger mb-1"
                             @onclick="Reset"
                             disabled="@isBtnResetDisabled">
@@ -95,26 +104,26 @@
                 <div class="card-body">
                     <div class="col-12">
                         <div class="row">
-                            <div class="col">
-                                <button class="btn btn-outline-success mb-1"
+                            <div class="col-md-8">
+                                <button class="btn btn-outline-danger mb-1"
+                                    @onclick="async () => await DeletePosts()">
+                                    <span class="oi oi-trash" aria-hidden="true"></span>
+                                    &nbsp;
+                                    刪除貼文
+                                </button>
+                                &nbsp;
+                                <button class="btn btn-outline-primary mb-1"
                                     @onclick="async () => await ExportJsonFile()">
                                     <span class="oi oi-data-transfer-download" aria-hidden="true"></span>
                                     &nbsp;
                                     匯出 JSON 檔案
                                 </button>
                                 &nbsp;
-                                <button class="btn btn-outline-info mb-1"
+                                <button class="btn btn-outline-primary mb-1"
                                     @onclick="async () => await SendPostsToDiscord()">
                                     <span class="oi oi-cloud-upload" aria-hidden="true"></span>
                                     &nbsp;
                                     傳送貼文至 Discord
-                                </button>
-                                &nbsp;
-                                <button class="btn btn-outline-danger mb-1"
-                                    @onclick="async () => await DeletePosts()">
-                                    <span class="oi oi-trash" aria-hidden="true"></span>
-                                    &nbsp;
-                                    刪除貼文
                                 </button>
                             </div>
                             <div class="col text-end">
@@ -152,7 +161,7 @@
                         <div class="card-header">
                             <div class="col-12">
                                 <div class="row">
-                                    <div class="col-md-6 text-start" style="vertical-align: middle;">
+                                    <div class="col-md-7 text-start" style="vertical-align: middle;">
                                         <div>
                                             <input type="checkbox" class="form-check-input"
                                            @bind="@postData.IsChecked"
@@ -181,7 +190,7 @@
                                         postData.AuthorThumbnailUrl :
                                         postData.AuthorThumbnailDataUri;
                                     }
-                                    <div class="col-md-6 text-end">
+                                    <div class="col-md-5 text-end">
                                         <a href="@postData.AuthorThumbnailUrl" target="_blank">
                                             <img class="img-thumbnail"
                                                  src="@authorThumbnailUrl"
@@ -196,10 +205,10 @@
                         <div class="card-body">
                             <div class="col-12 text-start">
                                 <button class="btn btn-outline-light mb-1"
-                                @onclick="async () => await SendPostToDiscord(postData.PostID)">
-                                    <span class="oi oi-cloud-upload" aria-hidden="true"></span>
+                                @onclick="async () => await DeletePost(postData.PostID)">
+                                    <span class="oi oi-trash" aria-hidden="true"></span>
                                     &nbsp;
-                                    傳送至 Discord
+                                    刪除貼文
                                 </button>
                                 &nbsp;
                                 <button class="btn btn-outline-light mb-1"
@@ -210,10 +219,10 @@
                                 </button>
                                 &nbsp;
                                 <button class="btn btn-outline-light mb-1"
-                                @onclick="async () => await DeletePost(postData.PostID)">
-                                    <span class="oi oi-trash" aria-hidden="true"></span>
+                                @onclick="async () => await SendPostToDiscord(postData.PostID)">
+                                    <span class="oi oi-cloud-upload" aria-hidden="true"></span>
                                     &nbsp;
-                                    刪除貼文
+                                    傳送至 Discord
                                 </button>
                             </div>
                             <hr />
@@ -613,7 +622,7 @@
     }
 
     /// <summary>
-    /// 獲取先前的全部社群貼文
+    /// 獲取剩餘的社群貼文
     /// </summary>
     /// <returns>Task</returns>
     private async Task FetchRestPosts()
