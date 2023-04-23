@@ -1,0 +1,10 @@
+﻿.img_container {
+    position: relative;
+    display: inline-block;
+}
+
+.img_container .btn {
+    position: absolute;
+    right: 4px;
+    top: 4px;
+}

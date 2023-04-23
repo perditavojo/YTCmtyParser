@@ -37,61 +37,77 @@
 <div class="card mb-2">
     <div class="card-body">
         <div class="col-12">
-            <div class="row">
-                <div class="mb-2">
-                    <label for="iYtChUrl" class="form-label">YouTube 頻道網址</label>
-                    <input id="iYtChUrl" type="url"
-                           class="form-control"
-                           @bind="ytChUrl"
+            <div class="form-floating mb-2">
+                <select class="form-select" id="sChannel" @bind="ytChUrl" aria-label="YouTube 頻道">
+                    <option value="">
+                        - 請選擇 -
+                    </option>
+                    @if (sharedChannels?.Any() == true)
+                    {
+                        @foreach (ChannelData channelData in sharedChannels)
+                        {
+                            <option value="@channelData.Url">
+                                @channelData.Name
+                            </option>
+                        }
+                    }
+
+                </select>
+                <label for="sChannel">YouTube 頻道</label>
+            </div>
+            <div class="mb-2">
+                <label for="iYtChUrl" class="form-label">YouTube 頻道網址</label>
+                <input id="iYtChUrl" type="url"
+                       class="form-control"
+                       @bind="ytChUrl"
+                       @bind:event="oninput"
+                       @onchange="async (evt) => await ParseUrl(evt.Value)"
+                       placeholder="網址"></input>
+            </div>
+            <div class="mb-2">
+                <button class="btn btn-primary mb-1"
+                        @onclick="async () => await FetchInitialPosts(ytChUrl)"
+                        disabled="@isBtnFetchLatestPostsDisabled">
+                    <span class="oi oi-cloud-download" aria-hidden="true"></span>
+                    &nbsp;
+                    獲取最新的社群貼文
+                </button>
+                &nbsp;
+                <button class="btn btn-outline-primary mb-1"
+                        @onclick="async () => await FetchOlderPosts()"
+                        disabled="@isBtnFetchOlderPostsDisabled">
+                    <span class="oi oi-cloud-download" aria-hidden="true"></span>
+                    &nbsp;
+                    獲取先前的社群貼文
+                </button>
+                &nbsp;
+                <button class="btn btn-outline-primary mb-1"
+                        @onclick="async () => await FetchRestPosts()"
+                        disabled="@isBtnFetchRestPostsDisabled">
+                    <span class="oi oi-cloud-download" aria-hidden="true"></span>
+                    &nbsp;
+                    獲取剩餘的社群貼文
+                </button>
+            </div>
+            <div class="mb-2">
+                <div class="form-check">
+                    <input id="cbSetDataUri"
+                           type="checkbox"
+                           class="form-check-input"
+                           @bind="enableSetDataUri"
                            @bind:event="oninput"
-                           @onchange="async (evt) => await ParseUrl(evt.Value)"
-                           placeholder="網址"></input>
+                           @onchange="(evt) => SaveSetting(evt.Value)" />
+                    <label for="cbSetDataUri" class="form-check-label">設定資料統一資源標識符</label>&nbsp;
                 </div>
-                <div class="mb-2">
-                    <button class="btn btn-primary mb-1"
-                            @onclick="async () => await FetchInitialPosts(ytChUrl)"
-                            disabled="@isBtnFetchLatestPostsDisabled">
-                        <span class="oi oi-cloud-download" aria-hidden="true"></span>
-                        &nbsp;
-                        獲取最新的社群貼文
-                    </button>
+            </div>
+            <div class="text-end">
+                <button class="btn btn-outline-danger mb-1"
+                        @onclick="Reset"
+                        disabled="@isBtnResetDisabled">
+                    <span class="oi oi-action-undo" aria-hidden="true"></span>
                     &nbsp;
-                    <button class="btn btn-outline-primary mb-1"
-                            @onclick="async () => await FetchOlderPosts()"
-                            disabled="@isBtnFetchOlderPostsDisabled">
-                        <span class="oi oi-cloud-download" aria-hidden="true"></span>
-                        &nbsp;
-                        獲取先前的社群貼文
-                    </button>
-                    &nbsp;
-                    <button class="btn btn-outline-primary mb-1"
-                            @onclick="async () => await FetchRestPosts()"
-                            disabled="@isBtnFetchRestPostsDisabled">
-                        <span class="oi oi-cloud-download" aria-hidden="true"></span>
-                        &nbsp;
-                        獲取剩餘的社群貼文
-                    </button>
-                </div>
-                <div class="mb-2">
-                    <div class="form-check">
-                        <input id="cbSetDataUri"
-                               type="checkbox"
-                               class="form-check-input"
-                               @bind="enableSetDataUri"
-                               @bind:event="oninput"
-                               @onchange="(evt) => SaveSetting(evt.Value)" />
-                        <label for="cbSetDataUri" class="form-check-label">設定資料統一資源標識符</label>&nbsp;
-                    </div>
-                </div>
-                <div class="text-end">
-                    <button class="btn btn-outline-danger mb-1"
-                            @onclick="Reset"
-                            disabled="@isBtnResetDisabled">
-                        <span class="oi oi-action-undo" aria-hidden="true"></span>
-                        &nbsp;
-                        重設
-                    </button>
-                </div>
+                    重設
+                </button>
             </div>
         </div>
     </div>
@@ -294,9 +310,17 @@
                                     attachmentData.Url :
                                     attachmentData.DataUri;
 
-                                    <a href="@attachmentData.Url" target="_blank">
-                                        <img class="card-img-bottom" src="@attachmentUrl" alt="附件 @idx">
-                                    </a>
+                                    <div class="img_container">
+                                        <a href="@attachmentData.Url" target="_blank">
+                                            <img class="card-img-bottom" src="@attachmentUrl" alt="附件 @idx">
+                                        </a>
+                                        <button class="btn btn-outline-light btn-sm mb-1"
+                            @onclick="async () => await DeleteAttachment(postData.PostID, attachmentData.Url)">
+                                            <span class="oi oi-trash" aria-hidden="true"></span>
+                                            &nbsp;
+                                            刪除附件
+                                        </button>
+                                    </div>
                                 }
 
                                 idx++;
@@ -332,6 +356,7 @@
     private string sharedReferer = string.Empty;
     private List<PostData> sharedPostDatas = new();
     private string? ytChUrl = string.Empty;
+    private List<ChannelData>? sharedChannels = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -348,6 +373,14 @@
     {
         try
         {
+            if (File.Exists(GlobalSet.Files.ChannelsJson))
+            {
+                using FileStream fileStream = File.OpenRead(GlobalSet.Files.ChannelsJson);
+
+                sharedChannels = await JsonSerializer
+                    .DeserializeAsync<List<ChannelData>>(fileStream);
+            }
+
             bool hasEnableSetDataUri = PreferencesUtil.HasKey(
                 GlobalSet.Keys.EnableSetDataUri);
 
@@ -1033,6 +1066,69 @@
             sharedPostDatas.Remove(postData);
 
             await AlertUtil.ShowToast("已刪除貼文。");
+        }
+        catch (Exception ex)
+        {
+            await AlertUtil.ShowErrorAlert(ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// 刪除附件（指定附件）
+    /// </summary>
+    /// <param name="postID">字串，貼文的 ID</param>
+    /// <param name="url">字串，附件的網址</param>
+    /// <returns>Task</returns>
+    private async Task DeleteAttachment(string? postID, string? url)
+    {
+        try
+        {
+            bool? confirm = await AlertUtil.ShowConfirmAlert(
+                "刪除附件",
+                "您是否要刪除此附件？");
+
+            if (confirm == false)
+            {
+                return;
+            }
+
+            if (string.IsNullOrEmpty(postID))
+            {
+                await AlertUtil.ShowToast($"發生錯誤，無效的貼文 ID：{postID}。");
+
+                return;
+            }
+
+            PostData? postData = sharedPostDatas.FirstOrDefault(n => n.PostID == postID);
+
+            if (postData == null)
+            {
+                await AlertUtil.ShowToast($"發生錯誤，找不到對應的貼文資料，貼文 ID：{postID}。");
+
+                return;
+            }
+
+            List<AttachmentData>? attachments = postData.Attachments;
+
+            if (attachments == null)
+            {
+                await AlertUtil.ShowToast($"發生錯誤，此貼文沒有附件。");
+
+                return;
+            }
+
+            AttachmentData? attachmentData = attachments.FirstOrDefault(n => n.Url == url);
+
+            if (attachmentData == null)
+            {
+                await AlertUtil.ShowToast($"發生錯誤，找不到對應的附件資料，附件網址：{url}。");
+
+                return;
+            }
+
+            postData.Attachments.Remove(attachmentData);
+
+            await AlertUtil.ShowToast("已刪除附件。");
         }
         catch (Exception ex)
         {

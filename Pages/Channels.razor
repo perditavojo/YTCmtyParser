@@ -1,4 +1,4 @@
-﻿@page "/webhooks"
+﻿@page "/channels"
 
 @using CommunityToolkit.Maui.Storage;
 @using System.Text;
@@ -13,28 +13,24 @@
     <div class="card-body">
         <div class="col-12">
             <div class="mb-2">
-                <label for="iWebhookName" class="form-label">Webhook 名稱</label>
-                <input id="iWebhookName" type="text"
+                <label for="iChannelName" class="form-label">YouTube 頻道名稱</label>
+                <input id="iChannelName" type="text"
                        class="form-control"
-                       @bind="sharedWebhookName"
+                       @bind="sharedChannelName"
                        placeholder="名稱"></input>
             </div>
             <div class="mb-2">
-                <label for="iWebhookUrl" class="form-label">Webhook 網址</label>
-                <input id="iWebhookUrl" type="url"
+                <label for="iChannelUrl" class="form-label">YouTube 頻道網址</label>
+                <input id="iChannelUrl" type="url"
                        class="form-control"
-                       @bind="sharedWebhookUrl"
-                       placeholder="網址"
-                       aria-labelledby="dWebhookUrlHelperBlock"></input>
-                <div id="dWebhookUrlHelperBlock" class="form-text text-danger">
-                    ※只支援 Discord 文字頻道的 Webhook 網址。
-                </div>
+                       @bind="sharedChannelUrl"
+                       placeholder="網址"></input>
             </div>
             <div class="text-end mb-2">
                 <button class="btn btn-primary mb-1"
-                        @onclick="async () => await AddWebhook()">
+                        @onclick="async () => await AddChannel()">
                     <span class="oi oi-plus" aria-hidden="true"></span>
-                    &nbsp;新增 Webhook
+                    &nbsp;YouTube 頻道
                 </button>
             </div>
         </div>
@@ -45,25 +41,25 @@
         <thead>
             <tr>
                 <th scope="col" style="width: 20%;">#</th>
-                <th scope="col" style="width: 40%;">頻道名稱</th>
-                <th scope="col">Webhook 網址</th>
+                <th scope="col" style="width: 40%;">YouTube 頻道名稱</th>
+                <th scope="col">YouTube 頻道網址</th>
             </tr>
         </thead>
         <tbody class="table-group-divider">
-            @if (sharedWebhooks?.Any() == true)
+            @if (sharedChannels?.Any() == true)
             {
-                @foreach (WebhookData webhookData in sharedWebhooks)
+                @foreach (ChannelData channelData in sharedChannels)
                 {
                     <tr>
                         <th scope="row">
                             <button class="btn btn-outline-danger btn-sm mb-1"
-                            @onclick="async () => await DeleteWebhook(webhookData.Name)">
+                            @onclick="async () => await DeleteChannel(channelData.Name)">
                                 <span class="oi oi-trash" aria-hidden="true"></span>
                                 &nbsp;刪除
                             </button>
                         </th>
-                        <td>@webhookData.Name</td>
-                        <td style="white-space: pre-wrap; line-break: anywhere;">@webhookData.Url</td>
+                        <td>@channelData.Name</td>
+                        <td style="white-space: pre-wrap; line-break: anywhere;">@channelData.Url</td>
                     </tr>
                 }
             }
@@ -78,17 +74,17 @@
 </div>
 
 @code {
-    // 來源：https://github.com/discord-net/Discord.Net/blob/dev/src/Discord.Net.Webhook/DiscordWebhookClient.cs#L52
-    private static Regex WebhookUrlRegex = new Regex(
-        @"^.*(discord|discordapp)\.com\/api\/webhooks\/([\d]+)\/([a-z0-9_-]+)$",
+    // 來源：https://stackoverflow.com/a/31726735
+    private static Regex ChannelUrlRegex = new Regex(
+        @"((http(s)?:\/\/)?)(www\.)?((youtube\.com\/)|(youtu.be\/))[\S]+",
         RegexOptions.Compiled |
         RegexOptions.IgnoreCase |
         RegexOptions.CultureInvariant);
 
     // 變數。
-    private string? sharedWebhookName = string.Empty;
-    private string? sharedWebhookUrl = string.Empty;
-    private List<WebhookData>? sharedWebhooks = new();
+    private string? sharedChannelName = string.Empty;
+    private string? sharedChannelUrl = string.Empty;
+    private List<ChannelData>? sharedChannels = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -105,12 +101,12 @@
     {
         try
         {
-            if (File.Exists(GlobalSet.Files.WebhooksJson))
+            if (File.Exists(GlobalSet.Files.ChannelsJson))
             {
-                using FileStream fileStream = File.OpenRead(GlobalSet.Files.WebhooksJson);
+                using FileStream fileStream = File.OpenRead(GlobalSet.Files.ChannelsJson);
 
-                sharedWebhooks = await JsonSerializer
-                    .DeserializeAsync<List<WebhookData>>(fileStream);
+                sharedChannels = await JsonSerializer
+                    .DeserializeAsync<List<ChannelData>>(fileStream);
             }
         }
         catch (Exception ex)
@@ -120,88 +116,88 @@
     }
 
     /// <summary>
-    /// 新增 Webhook
+    /// 新增 YouTube 頻道
     /// </summary>
     /// <returns>Task</returns>
-    private async Task AddWebhook()
+    private async Task AddChannel()
     {
         try
         {
-            if (string.IsNullOrEmpty(sharedWebhookName))
+            if (string.IsNullOrEmpty(sharedChannelName))
             {
-                sharedWebhookName = string.Empty;
+                sharedChannelName = string.Empty;
 
-                await AlertUtil.ShowToast("請輸入 Webhook 名稱。");
+                await AlertUtil.ShowToast("請輸入 YouTube 頻道名稱。");
 
                 return;
             }
             else
             {
-                if (sharedWebhooks?.Any(n => n.Name == sharedWebhookName) == true)
+                if (sharedChannels?.Any(n => n.Name == sharedChannelName) == true)
                 {
-                    sharedWebhookName = string.Empty;
+                    sharedChannelName = string.Empty;
 
-                    await AlertUtil.ShowToast($"Webhook 名稱 \"{sharedWebhookName}\" 不可重複。");
+                    await AlertUtil.ShowToast($"YouTube 頻道名稱 \"{sharedChannelName}\" 不可重複。");
 
                     return;
                 }
             }
 
-            if (!string.IsNullOrEmpty(sharedWebhookUrl) &&
-                !WebhookUrlRegex.IsMatch(sharedWebhookUrl))
+            if (!string.IsNullOrEmpty(sharedChannelUrl) &&
+                !ChannelUrlRegex.IsMatch(sharedChannelUrl))
             {
-                sharedWebhookUrl = string.Empty;
+                sharedChannelUrl = string.Empty;
 
-                await AlertUtil.ShowToast("請輸入有效的 Webhook 網址。");
+                await AlertUtil.ShowToast("請輸入有效的 YouTube 頻道網址。");
 
                 return;
             }
 
-            if (sharedWebhooks?.Any(n => n.Url == sharedWebhookUrl) == true)
+            if (sharedChannels?.Any(n => n.Url == sharedChannelUrl) == true)
             {
-                string message = "Webhook 網址不可重複。";
+                string message = "YouTube 頻道網址不可重複。";
 
-                WebhookData? webhookData = sharedWebhooks.FirstOrDefault(n => n.Url == sharedWebhookUrl);
+                ChannelData? channelData = sharedChannels.FirstOrDefault(n => n.Url == sharedChannelUrl);
 
-                if (webhookData != null)
+                if (channelData != null)
                 {
-                    message = message.Replace("。", $"，此 Webhook 網址已被 Webhook \"{webhookData.Name}\" 使用。");
+                    message = message.Replace("。", $"，此 YouTube 頻道網址已被 YouTube 頻道 \"{channelData.Name}\" 使用。");
                 }
 
-                sharedWebhookUrl = string.Empty;
+                sharedChannelUrl = string.Empty;
 
                 await AlertUtil.ShowToast(message);
 
                 return;
             }
 
-            if (string.IsNullOrEmpty(sharedWebhookName) ||
-                string.IsNullOrEmpty(sharedWebhookUrl))
+            if (string.IsNullOrEmpty(sharedChannelName) ||
+                string.IsNullOrEmpty(sharedChannelUrl))
             {
-                await AlertUtil.ShowToast("請輸入 Webhook 名稱或 Webhook 網址。");
+                await AlertUtil.ShowToast("請輸入 YouTube 頻道名稱或 YouTube 頻道網址。");
 
                 return;
             }
 
-            sharedWebhooks?.Add(new WebhookData()
+            sharedChannels?.Add(new ChannelData()
                 {
-                    Name = sharedWebhookName,
-                    Url = sharedWebhookUrl
+                    Name = sharedChannelName,
+                    Url = sharedChannelUrl
                 });
 
-            await AlertUtil.ShowToast($"已新增 Webhook \"{sharedWebhookName}\"。")
+            await AlertUtil.ShowToast($"已新增 YouTube 頻道 \"{sharedChannelName}\"。")
                 .ContinueWith(async task =>
                 {
-                    string content = sharedWebhooks?.ToJsonString() ?? string.Empty;
+                    string content = sharedChannels?.ToJsonString() ?? string.Empty;
 
                     await SaveToFile(
-                        filePath: GlobalSet.Files.WebhooksJson,
+                        filePath: GlobalSet.Files.ChannelsJson,
                         content: content);
                 })
                 .ContinueWith(task =>
                 {
-                    sharedWebhookName = string.Empty;
-                    sharedWebhookUrl = string.Empty;
+                    sharedChannelName = string.Empty;
+                    sharedChannelUrl = string.Empty;
                 });
         }
         catch (Exception ex)
@@ -211,17 +207,17 @@
     }
 
     /// <summary>
-    /// 刪除 Webhook
+    /// 刪除 YouTube 頻道
     /// </summary>
-    /// <param name="name">字串，Webhook 的名稱</param>
+    /// <param name="name">字串， YouTube 頻道的名稱</param>
     /// <returns>Task</returns>
-    private async Task DeleteWebhook(string? name)
+    private async Task DeleteChannel(string? name)
     {
         try
         {
             bool? confirm = await AlertUtil.ShowConfirmAlert(
-                "刪除 Webhook",
-                "您是否要刪除此 Webhook？");
+                "刪除 YouTube 頻道",
+                "您是否要刪除此 YouTube 頻道？");
 
             if (confirm == false)
             {
@@ -230,37 +226,37 @@
 
             if (string.IsNullOrEmpty(name))
             {
-                await AlertUtil.ShowToast("Webhook 刪除失敗，Webhook 名稱不得為空。");
+                await AlertUtil.ShowToast("YouTube 頻道刪除失敗，YouTube 頻道名稱不得為空。");
 
                 return;
             }
 
-            int? removeCount = sharedWebhooks?.RemoveAll(n => n.Name == name);
+            int? removeCount = sharedChannels?.RemoveAll(n => n.Name == name);
 
 
             if (removeCount == null || removeCount == 0)
             {
-                await AlertUtil.ShowToast($"Webhook 刪除失敗，找不到對應的 Webhook：{name}。");
+                await AlertUtil.ShowToast($"YouTube 頻道刪除失敗，找不到對應的 YouTube 頻道：{name}。");
 
                 return;
             }
 
-            await AlertUtil.ShowToast($"已刪除 Webhook：{name}。")
+            await AlertUtil.ShowToast($"已刪除 YouTube 頻道：{name}。")
                 .ContinueWith(async task =>
                 {
-                    if (sharedWebhooks?.Count > 0)
+                    if (sharedChannels?.Count > 0)
                     {
-                        string content = sharedWebhooks?.ToJsonString() ?? string.Empty;
+                        string content = sharedChannels?.ToJsonString() ?? string.Empty;
 
                         await SaveToFile(
-                            filePath: GlobalSet.Files.WebhooksJson,
+                            filePath: GlobalSet.Files.ChannelsJson,
                             content: content);
                     }
                     else
                     {
-                        if (File.Exists(GlobalSet.Files.WebhooksJson))
+                        if (File.Exists(GlobalSet.Files.ChannelsJson))
                         {
-                            File.Delete(GlobalSet.Files.WebhooksJson);
+                            File.Delete(GlobalSet.Files.ChannelsJson);
                         }
                     }
                 });

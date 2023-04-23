@@ -42,7 +42,12 @@ public static class GlobalSet
     public static class Files
     {
         /// <summary>
-        /// Webhooj.json
+        /// Channels.json
+        /// </summary>
+        public static readonly string ChannelsJson = Path.Combine(FileSystem.Current.AppDataDirectory, "Channels.json");
+
+        /// <summary>
+        /// Webhooks.json
         /// </summary>
         public static readonly string WebhooksJson = Path.Combine(FileSystem.Current.AppDataDirectory, "Webhooks.json");
     }
