@@ -34,8 +34,8 @@
         <AppxPackageSigningEnabled>True</AppxPackageSigningEnabled>
         <PackageCertificateKeyFile>YTCmtyParser_TemporaryKey.pfx</PackageCertificateKeyFile>
         <AppxPackageSigningTimestampDigestAlgorithm>SHA512</AppxPackageSigningTimestampDigestAlgorithm>
-        <AppxAutoIncrementPackageRevision>False</AppxAutoIncrementPackageRevision>
-        <AppxSymbolPackageEnabled>False</AppxSymbolPackageEnabled>
+        <AppxAutoIncrementPackageRevision>True</AppxAutoIncrementPackageRevision>
+        <AppxSymbolPackageEnabled>True</AppxSymbolPackageEnabled>
         <GenerateTestArtifacts>True</GenerateTestArtifacts>
         <HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
     </PropertyGroup>
