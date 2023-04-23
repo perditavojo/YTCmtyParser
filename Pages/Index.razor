@@ -348,14 +348,12 @@
     {
         try
         {
-            bool hasEnableSetDataUrl = PreferencesUtil
-                .HasKey(GlobalSet.Keys.EnableSetDataUri);
+            bool hasEnableSetDataUri = PreferencesUtil.HasKey(
+                GlobalSet.Keys.EnableSetDataUri);
 
-            if (hasEnableSetDataUrl)
-            {
-                enableSetDataUri = PreferencesUtil
-                    .GetBooleanValue(GlobalSet.Keys.EnableSetDataUri) ?? false;
-            }
+            enableSetDataUri = hasEnableSetDataUri ?
+                PreferencesUtil.GetBooleanValue(GlobalSet.Keys.EnableSetDataUri) :
+                false;
         }
         catch (Exception ex)
         {
