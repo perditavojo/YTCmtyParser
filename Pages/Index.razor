@@ -1108,16 +1108,14 @@
                 return;
             }
 
-            List<AttachmentData>? attachments = postData.Attachments;
-
-            if (attachments == null)
+            if (postData?.Attachments == null)
             {
                 await AlertUtil.ShowToast($"發生錯誤，此貼文沒有附件。");
 
                 return;
             }
 
-            AttachmentData? attachmentData = attachments.FirstOrDefault(n => n.Url == url);
+            AttachmentData? attachmentData = postData?.Attachments?.FirstOrDefault(n => n.Url == url);
 
             if (attachmentData == null)
             {
@@ -1126,7 +1124,7 @@
                 return;
             }
 
-            postData.Attachments.Remove(attachmentData);
+            postData?.Attachments?.Remove(attachmentData);
 
             await AlertUtil.ShowToast("已刪除附件。");
         }
