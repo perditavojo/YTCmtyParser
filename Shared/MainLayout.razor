@@ -20,8 +20,13 @@
         // 當作業系統為 Android 時才需要執行。
         if (DeviceInfo.Platform == DevicePlatform.Android)
         {
-            await CheckAndRequestStorageReadPermission();
-            await CheckAndRequestStorageWritePermission();
+            // Ref: https://github.com/CommunityToolkit/Maui/issues/1146
+            // 從 Android API Level 33 開始，沒有下列的權限。
+            if (!OperatingSystem.IsAndroidVersionAtLeast(33))
+            {    
+                await CheckAndRequestStorageReadPermission();
+                await CheckAndRequestStorageWritePermission();
+            }
         }
 
         await Task.CompletedTask;
