@@ -13,3 +13,64 @@
         </article>
     </main>
 </div>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        // 當作業系統為 Android 時才需要執行。
+        if (DeviceInfo.Platform == DevicePlatform.Android)
+        {
+            await CheckAndRequestStorageReadPermission();
+            await CheckAndRequestStorageWritePermission();
+        }
+
+        await Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// 檢查並請求 StorageRead 權限
+    /// </summary>
+    /// <returns>Task&lt;PermissionStatus&gt;</returns>
+    public async Task<PermissionStatus> CheckAndRequestStorageReadPermission()
+    {
+        PermissionStatus status = await Permissions.CheckStatusAsync<Permissions.StorageRead>();
+
+        if (status == PermissionStatus.Granted)
+        {
+            return status;
+        }
+
+        if (Permissions.ShouldShowRationale<Permissions.StorageRead>())
+        {
+            // Prompt the user with additional information as to why the permission is needed.
+        }
+
+        status = await Permissions.RequestAsync<Permissions.StorageRead>();
+
+        return status;
+    }
+
+    /// <summary>
+    /// 檢查並請求 StorageWrite 權限
+    /// </summary>
+    /// <returns>Task&lt;PermissionStatus&gt;</returns>
+    public async Task<PermissionStatus> CheckAndRequestStorageWritePermission()
+    {
+        PermissionStatus status = await Permissions.CheckStatusAsync<Permissions.StorageWrite>();
+
+        if (status == PermissionStatus.Granted)
+        {
+            return status;
+        }
+
+        if (Permissions.ShouldShowRationale<Permissions.StorageWrite>())
+        {
+            // Prompt the user with additional information as to why the permission is needed.
+        }
+
+        status = await Permissions.RequestAsync<Permissions.StorageWrite>();
+
+        return status;
+    }
+
+}

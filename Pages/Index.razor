@@ -202,9 +202,14 @@
                                         </div>
                                     </div>
                                     @{
-                                        string? authorThumbnailUrl = string.IsNullOrEmpty(postData.AuthorThumbnailDataUri) ?
-                                        postData.AuthorThumbnailUrl :
-                                        postData.AuthorThumbnailDataUri;
+                                        string? authorThumbnailUrl = postData.AuthorThumbnailUrl;
+
+                                        if (DeviceInfo.Platform != DevicePlatform.Android)
+                                        {
+                                            authorThumbnailUrl = string.IsNullOrEmpty(postData.AuthorThumbnailDataUri) ?
+                                            postData.AuthorThumbnailUrl :
+                                            postData.AuthorThumbnailDataUri;
+                                        }
                                     }
                                     <div class="col-md-5 text-end">
                                         <a href="@postData.AuthorThumbnailUrl" target="_blank">
@@ -269,9 +274,14 @@
                                 {
                                     VideoData? videoData = attachmentData.VideoData;
 
-                                    string? attachmentUrl = string.IsNullOrEmpty(attachmentData.DataUri) ?
-                                    videoData?.ThumbnailUrl :
-                                    attachmentData.DataUri;
+                                    string? attachmentUrl = videoData?.ThumbnailUrl;
+
+                                    if (DeviceInfo.Platform != DevicePlatform.Android)
+                                    {
+                                        attachmentUrl = string.IsNullOrEmpty(attachmentData.DataUri) ?
+                                        videoData?.ThumbnailUrl :
+                                        attachmentData.DataUri;
+                                    }
 
                                     <a href="@videoData?.ThumbnailUrl" target="_blank">
                                         <img class="card-img-top" src="@attachmentUrl" alt="影片的預覽圖">
@@ -306,9 +316,14 @@
                                 }
                                 else
                                 {
-                                    string? attachmentUrl = string.IsNullOrEmpty(attachmentData.DataUri) ?
-                                    attachmentData.Url :
-                                    attachmentData.DataUri;
+                                    string? attachmentUrl = attachmentData.Url;
+
+                                    if (DeviceInfo.Platform != DevicePlatform.Android)
+                                    {
+                                        attachmentUrl = string.IsNullOrEmpty(attachmentData.DataUri) ?
+                                        attachmentData.Url :
+                                        attachmentData.DataUri;
+                                    }
 
                                     <div class="img_container">
                                         <a href="@attachmentData.Url" target="_blank">
