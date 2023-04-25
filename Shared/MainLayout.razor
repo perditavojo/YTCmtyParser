@@ -1,4 +1,5 @@
-﻿@inherits LayoutComponentBase
+﻿@using YTCmtyParser.Commons.Utils;
+@inherits LayoutComponentBase
 
 <div class="page">
     <div class="sidebar">
@@ -20,11 +21,12 @@
         // 當作業系統為 Android 時才需要執行。
         if (DeviceInfo.Platform == DevicePlatform.Android)
         {
-            // Ref: https://github.com/CommunityToolkit/Maui/issues/1146
-            // 從 Android API Level 33 開始，沒有下列的權限。
+            // 在 API Level 小於 33 前都要執行。
             if (!OperatingSystem.IsAndroidVersionAtLeast(33))
-            {    
+            {   // API Level 32。
                 await CheckAndRequestStorageReadPermission();
+
+                // API Level 29。
                 await CheckAndRequestStorageWritePermission();
             }
         }
@@ -47,10 +49,15 @@
 
         if (Permissions.ShouldShowRationale<Permissions.StorageRead>())
         {
-            // Prompt the user with additional information as to why the permission is needed.
+            await AlertUtil.ShowSnackbar("需要您允許此權限請求，用以獲得載入 JSON 檔案的能力。", async () =>
+            {
+                status = await Permissions.RequestAsync<Permissions.StorageRead>();
+            });
         }
-
-        status = await Permissions.RequestAsync<Permissions.StorageRead>();
+        else
+        {
+            status = await Permissions.RequestAsync<Permissions.StorageRead>();
+        }
 
         return status;
     }
@@ -70,12 +77,16 @@
 
         if (Permissions.ShouldShowRationale<Permissions.StorageWrite>())
         {
-            // Prompt the user with additional information as to why the permission is needed.
+            await AlertUtil.ShowSnackbar("需要您允許此權限請求，用以獲得匯出 JSON 檔案的能力。", async () =>
+            {
+                status = await Permissions.RequestAsync<Permissions.StorageWrite>();
+            });
         }
-
-        status = await Permissions.RequestAsync<Permissions.StorageWrite>();
+        else
+        {
+            status = await Permissions.RequestAsync<Permissions.StorageWrite>();
+        }
 
         return status;
     }
-
 }

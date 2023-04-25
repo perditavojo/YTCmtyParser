@@ -1,5 +1,5 @@
 ﻿using CommunityToolkit.Maui.Alerts;
-using Org.BouncyCastle.Asn1.IsisMtt.X509;
+using CommunityToolkit.Maui.Core;
 
 namespace YTCmtyParser.Commons.Utils;
 
@@ -8,17 +8,6 @@ namespace YTCmtyParser.Commons.Utils;
 /// </summary>
 public class AlertUtil
 {
-    /// <summary>
-    /// 顯示 Toast
-    /// </summary>
-    /// <param name="message">字串，訊息</param>
-    /// <param name="ct">CancellationToken</param>
-    /// <returns>Task</returns>
-    public static async Task ShowToast(string message, CancellationToken ct = default)
-    {
-        await Toast.Make(message).Show(ct);
-    }
-
     /// <summary>
     ///  顯示警報
     /// </summary>
@@ -118,5 +107,59 @@ public class AlertUtil
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// 顯示 Toast
+    /// </summary>
+    /// <param name="message">字串，訊息</param>
+    /// <param name="ct">CancellationToken</param>
+    /// <returns>Task</returns>
+    public static async Task ShowToast(string message, CancellationToken ct = default)
+    {
+        await Toast.Make(
+                message: message,
+                duration: ToastDuration.Short,
+                textSize: 14)
+            .Show(token: ct);
+    }
+
+    /// <summary>
+    /// 顯示長時間的 Toast
+    /// </summary>
+    /// <param name="message">字串，訊息</param>
+    /// <param name="ct">CancellationToken</param>
+    /// <returns>Task</returns>
+    public static async Task ShowLongToast(string message, CancellationToken ct = default)
+    {
+        await Toast.Make(
+                message: message,
+                duration: ToastDuration.Long,
+                textSize: 14)
+            .Show(token: ct);
+    }
+
+    /// <summary>
+    /// 顯示 Snackbar
+    /// </summary>
+    /// <param name="message">字串，訊息</param>
+    /// <param name="action">Action</param>
+    /// <param name="actionButtonText">字串，行為按鈕的文字，預設值為 "確認"</param>
+    /// <param name="ct">CancellationToken</param>
+    /// <returns>Task</returns>
+    public static async Task ShowSnackbar(
+        string message,
+        Action? action = null,
+        string actionButtonText = "確認",
+        CancellationToken ct = default)
+    {
+        await Snackbar.Make(
+                message: message,
+                action: action,
+                actionButtonText: actionButtonText,
+                duration: null,
+                visualOptions: null,
+                anchor: null)
+            .Show(ct);
     }
 }

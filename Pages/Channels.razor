@@ -36,6 +36,36 @@
         </div>
     </div>
 </div>
+<div class="card mb-2">
+    <div class="card-body">
+        <div class="col-12">
+            <div class="row">
+                <div>
+                    <button class="btn btn-outline-primary mb-1"
+                            @onclick="async () => await ImportJsonFile()">
+                        <span class="oi oi-data-transfer-upload" aria-hidden="true"></span>
+                        &nbsp;
+                        匯入 JSON 檔案
+                    </button>
+                    &nbsp;
+                    <button class="btn btn-outline-primary mb-1"
+                            @onclick="async () => await ExportJsonFile()">
+                        <span class="oi oi-data-transfer-download" aria-hidden="true"></span>
+                        &nbsp;
+                        匯出 JSON 檔案
+                    </button>
+                    &nbsp;
+                    <button class="btn btn-outline-danger mb-1"
+                            @onclick="async () => await DeleteChannels()">
+                        <span class="oi oi-trash" aria-hidden="true"></span>
+                        &nbsp;
+                        刪除全部
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 <div class="table-responsive">
     <table class="table table-striped table-hover">
         <thead>
@@ -296,6 +326,171 @@
             await streamWriter.WriteAsync(content);
 
             await AlertUtil.ShowToast($"檔案 {fileName} 已儲存至：{filePath}。");
+        }
+        catch (Exception ex)
+        {
+            await AlertUtil.ShowErrorAlert(ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// 匯入 JSON 檔案
+    /// </summary>
+    /// <param name="ct">CancellationToken</param>
+    /// <returns>Task</returns>
+    private async Task ImportJsonFile(CancellationToken ct = default)
+    {
+        try
+        {
+            Dictionary<DevicePlatform, IEnumerable<string>> fileTypes = new()
+            {
+                { DevicePlatform.iOS, new string[] { "public.json" } },
+                { DevicePlatform.WinUI, new string[] { ".json" } },
+                { DevicePlatform.Tizen, new string[] { "*/*" } },
+                { DevicePlatform.tvOS, new string[] { "public.json" } },
+                { DevicePlatform.MacCatalyst, new string[] { "public.json" } },
+                { DevicePlatform.macOS, new string[] { "public.json" } },
+                { DevicePlatform.watchOS, new string[] { "public.json" } },
+                { DevicePlatform.Unknown, new string[] { ".json" } },
+                { DevicePlatform.Android, new string[] { "application/json" } }
+            };
+
+            PickOptions pickOptions = new PickOptions()
+                {
+                    FileTypes = new FilePickerFileType(fileTypes),
+                    PickerTitle = "請選擇 JSON 檔案"
+                };
+
+            FileResult? result = await FilePicker.Default.PickAsync(pickOptions);
+
+            if (result != null)
+            {
+                if (result.FileName.EndsWith("json", StringComparison.OrdinalIgnoreCase))
+                {
+                    using Stream stream = await result.OpenReadAsync();
+
+                    List<ChannelData>? channels = await JsonSerializer
+                        .DeserializeAsync<List<ChannelData>?>(
+                            utf8Json: stream,
+                            cancellationToken: ct);
+
+                    if (channels != null)
+                    {
+                        foreach (ChannelData channel in channels)
+                        {
+                            if (sharedChannels?.Any(n => n.Name == channel.Name &&
+                                n.Url == channel.Url) == false)
+                            {
+                                sharedChannels?.Add(channel);
+                            }
+                        }
+
+                        string content = sharedChannels?.ToJsonString() ?? string.Empty;
+
+                        await SaveToFile(
+                            filePath: GlobalSet.Files.ChannelsJson,
+                            content: content);
+
+                        await AlertUtil.ShowToast("已匯入 JSON 檔案。");
+                    }
+                }
+                else
+                {
+                    await AlertUtil.ShowToast("請選擇 JSON 檔案。");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            await AlertUtil.ShowErrorAlert(ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// 匯出 JSON 檔案
+    /// </summary>
+    /// <param name="ct">CancellationToken</param>
+    /// <returns>Task</returns>
+    private async Task ExportJsonFile(CancellationToken ct = default)
+    {
+        try
+        {
+            if (sharedChannels?.Any() == false)
+            {
+                await AlertUtil.ShowToast($"匯出 JSON 檔失敗，請先新增 YouTube 頻道。");
+
+                return;
+            }
+
+            string? jsonContent = sharedChannels?.ToJsonString();
+
+            if (string.IsNullOrEmpty(jsonContent))
+            {
+                await AlertUtil.ShowToast($"匯出 JSON 檔失敗，請先新增 YouTube 頻道。");
+
+                return;
+            }
+
+            byte[] bytes = Encoding.UTF8.GetBytes(jsonContent);
+
+            using MemoryStream memoryStream = new(bytes);
+
+            FileSaverResult fileSaverResult = await FileSaver.Default
+                .SaveAsync(
+                    fileName: $"YTCmtyParser_Channels_{DateTime.Now:yyyyMMddHHmmss}.json",
+                    stream: memoryStream,
+                    cancellationToken: ct);
+
+            fileSaverResult.EnsureSuccess();
+
+            if (fileSaverResult.IsSuccessful)
+            {
+                await AlertUtil.ShowToast($"檔案已儲存至：{fileSaverResult.FilePath}");
+            }
+            else
+            {
+                await AlertUtil.ShowErrorAlert(fileSaverResult.Exception.Message);
+            }
+        }
+        catch (Exception ex)
+        {
+            await AlertUtil.ShowErrorAlert(ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// 刪除 YouTube 頻道
+    /// </summary>
+    /// <returns>Task</returns>
+    private async Task DeleteChannels()
+    {
+        try
+        {
+            bool? confirm = await AlertUtil.ShowConfirmAlert(
+                "刪除 YouTube 頻道",
+                "您是否要刪除全部的 YouTube 頻道？");
+
+            if (confirm == false)
+            {
+                return;
+            }
+
+            if (sharedChannels?.Any() == false)
+            {
+                await AlertUtil.ShowToast("刪除失敗，請先新增 YouTube 頻道。");
+
+                return;
+            }
+
+            sharedChannels?.Clear();
+
+            string content = sharedChannels?.ToJsonString() ?? string.Empty;
+
+            await SaveToFile(
+                filePath: GlobalSet.Files.ChannelsJson,
+                content: content);
+
+            await AlertUtil.ShowToast("已刪除全部的 YouTube 頻道。");
         }
         catch (Exception ex)
         {

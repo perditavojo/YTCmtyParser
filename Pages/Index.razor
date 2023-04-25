@@ -1,11 +1,9 @@
 ﻿@page "/"
 
-@using CommunityToolkit.Maui.Alerts;
-@using CommunityToolkit.Maui.Storage;
-@using Microsoft.Maui.Controls;
 @using System.Security.Cryptography;
 @using System.Text;
 @using System.Text.Json;
+@using CommunityToolkit.Maui.Storage;
 @using YTApi.Commons;
 @using YTApi.Commons.Models;
 @using YTApi.Commons.Sets;
@@ -852,6 +850,8 @@
                     stream: memoryStream,
                     cancellationToken: ct);
 
+            fileSaverResult.EnsureSuccess();
+
             if (fileSaverResult.IsSuccessful)
             {
                 await AlertUtil.ShowToast($"檔案已儲存至：{fileSaverResult.FilePath}");
@@ -914,6 +914,8 @@
                     fileName: $"YouTube_Community_Post_{postID}_{DateTime.Now:yyyyMMddHHmmss}.json",
                     stream: memoryStream,
                     cancellationToken: ct);
+
+            fileSaverResult.EnsureSuccess();
 
             if (fileSaverResult.IsSuccessful)
             {
