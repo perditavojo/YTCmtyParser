@@ -9,6 +9,7 @@
 @using YTCmtyParser.Commons.Utils;
 @using YTCmtyParser.Data;
 
+<h1>管理 YouTube頻道</h1>
 <div class="card mb-2">
     <div class="card-body">
         <div class="col-12">
@@ -318,6 +319,11 @@
                 return;
             }
 
+            if (File.Exists(filePath))
+            {
+                File.Delete(filePath);
+            }
+
             string fileName = Path.GetFileName(filePath);
 
             using FileStream fileStream = File.OpenWrite(filePath);
@@ -477,7 +483,16 @@
 
             if (sharedChannels?.Any() == false)
             {
-                await AlertUtil.ShowToast("刪除失敗，請先新增 YouTube 頻道。");
+                if (File.Exists(GlobalSet.Files.ChannelsJson))
+                {
+                    File.Delete(GlobalSet.Files.ChannelsJson);
+
+                    await AlertUtil.ShowToast($"已刪除檔案：{GlobalSet.Files.ChannelsJson}。");
+                }
+                else
+                {
+                    await AlertUtil.ShowToast("刪除失敗，請先新增 YouTube 頻道。");
+                }
 
                 return;
             }

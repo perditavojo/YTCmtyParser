@@ -1,0 +1,280 @@
+﻿@page "/webhooks/edit/{inputWebhookName}"
+
+@using CommunityToolkit.Maui.Storage;
+@using System.Text;
+@using System.Text.RegularExpressions;
+@using System.Text.Json;
+@using YTApi.Commons.Models;
+@using YTCmtyParser.Commons.Extensions;
+@using YTCmtyParser.Commons.Utils;
+@using YTCmtyParser.Data;
+@inject NavigationManager navigationManager;
+
+<h1>編輯 Webhook</h1>
+<div class="card mb-2">
+    <div class="card-body">
+        <div class="col-12">
+            <div class="mb-2">
+                <label for="iWebhookName" class="form-label">Webhook 名稱</label>
+                <input id="iWebhookName" type="text"
+                       class="form-control"
+                       @bind="sharedWebhookName"
+                       placeholder="名稱"
+                       disabled="@isWebhookNameDisabled"></input>
+            </div>
+            <div class="mb-2">
+                <label for="iWebhookUrl" class="form-label">Webhook 網址</label>
+                <input id="iWebhookUrl" type="url"
+                       class="form-control"
+                       @bind="sharedWebhookUrl"
+                       placeholder="網址"
+                       aria-labelledby="dWebhookUrlHelperBlock"
+                       disabled="@isWebhookUrlDisabled"></input>
+                <div id="dWebhookUrlHelperBlock" class="form-text text-danger">
+                    ※只支援 Discord 文字頻道的 Webhook 網址。
+                </div>
+            </div>
+            <div class="text-end mb-2">
+                <button class="btn btn-success mb-1"
+                        @onclick="async () => await Save()"
+                        disabled="@isBtnSaveDisabled">
+                    <span class="oi oi-check" aria-hidden="true"></span>
+                    &nbsp;儲存
+                </button>
+                &nbsp;
+                <button class="btn btn-outline-secondary mb-1"
+                        @onclick="async () => await BackTo()"
+                        disabled="@isBtnBackToDisabled">
+                    <span class="oi oi-action-undo" aria-hidden="true"></span>
+                    &nbsp;返回
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string? inputWebhookName { get; set; }
+
+    // 來源：https://github.com/discord-net/Discord.Net/blob/dev/src/Discord.Net.Webhook/DiscordWebhookClient.cs#L52
+    private static Regex WebhookUrlRegex = new Regex(
+        @"^.*(discord|discordapp)\.com\/api\/webhooks\/([\d]+)\/([a-z0-9_-]+)$",
+        RegexOptions.Compiled |
+        RegexOptions.IgnoreCase |
+        RegexOptions.CultureInvariant);
+
+    // 元件的啟用、禁用控制。
+    protected bool isWebhookNameDisabled { get; set; } = false;
+    protected bool isWebhookUrlDisabled { get; set; } = false;
+    protected bool isBtnSaveDisabled { get; set; } = false;
+    protected bool isBtnBackToDisabled { get; set; } = false;
+
+    // 變數。
+    private string? sharedWebhookName = string.Empty;
+    private string? sharedWebhookUrl = string.Empty;
+    private List<WebhookData>? sharedWebhooks = new();
+    private WebhookData? sharedWebhookData = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadPrefs();
+
+        await Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// 載入設定
+    /// </summary>
+    /// <returns>Task</returns>
+    private async Task LoadPrefs()
+    {
+        try
+        {
+            if (File.Exists(GlobalSet.Files.WebhooksJson))
+            {
+                using FileStream fileStream = File.OpenRead(GlobalSet.Files.WebhooksJson);
+
+                sharedWebhooks = await JsonSerializer
+                    .DeserializeAsync<List<WebhookData>>(fileStream);
+
+                sharedWebhookData = sharedWebhooks?.FirstOrDefault(n => n.Name == inputWebhookName);
+
+                sharedWebhookName = sharedWebhookData?.Name;
+                sharedWebhookUrl = sharedWebhookData?.Url;
+            }
+        }
+        catch (Exception ex)
+        {
+            await AlertUtil.ShowErrorAlert(ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// 儲存
+    /// </summary>
+    /// <returns>Task</returns>
+    private async Task Save()
+    {
+        try
+        {
+            isWebhookNameDisabled = true;
+            isWebhookUrlDisabled = true;
+            isBtnSaveDisabled = true;
+            isBtnBackToDisabled = true;
+
+            if (string.IsNullOrEmpty(sharedWebhookName))
+            {
+                sharedWebhookName = string.Empty;
+
+                await AlertUtil.ShowToast("請輸入 Webhook 名稱。");
+
+                return;
+            }
+            else
+            {
+                if (sharedWebhooks?.Any(n => n != sharedWebhookData &&
+                    n.Name == sharedWebhookName) == true)
+                {
+                    sharedWebhookName = string.Empty;
+
+                    await AlertUtil.ShowToast($"Webhook 名稱 \"{sharedWebhookName}\" 不可重複。");
+
+                    return;
+                }
+            }
+
+            if (!string.IsNullOrEmpty(sharedWebhookUrl) &&
+                !WebhookUrlRegex.IsMatch(sharedWebhookUrl))
+            {
+                sharedWebhookUrl = string.Empty;
+
+                await AlertUtil.ShowToast("請輸入有效的 Webhook 網址。");
+
+                return;
+            }
+
+            if (sharedWebhooks?.Any(n => n != sharedWebhookData && n.Url == sharedWebhookUrl) == true)
+            {
+                string message = "Webhook 網址不可重複。";
+
+                WebhookData? webhookData = sharedWebhooks
+                    .FirstOrDefault(n => n != sharedWebhookData &&
+                        n.Url == sharedWebhookUrl);
+
+                if (webhookData != null)
+                {
+                    message = message.Replace("。", $"，此 Webhook 網址已被 Webhook \"{webhookData.Name}\" 使用。");
+                }
+
+                sharedWebhookUrl = string.Empty;
+
+                await AlertUtil.ShowToast(message);
+
+                return;
+            }
+
+            if (string.IsNullOrEmpty(sharedWebhookName) ||
+                string.IsNullOrEmpty(sharedWebhookUrl))
+            {
+                await AlertUtil.ShowToast("請輸入 Webhook 名稱或 Webhook 網址。");
+
+                return;
+            }
+
+            if (sharedWebhooks != null)
+            {
+                foreach (WebhookData webhookData in sharedWebhooks)
+                {
+                    if (webhookData == sharedWebhookData)
+                    {
+                        webhookData.Name = sharedWebhookName;
+                        webhookData.Url = sharedWebhookUrl;
+
+                        break;
+                    }
+                }
+            }
+
+            await AlertUtil.ShowToast($"已修改 Webhook \"{inputWebhookName}\"。")
+                .ContinueWith(async task =>
+                {
+                    string content = sharedWebhooks?.ToJsonString() ?? string.Empty;
+
+                    await SaveToFile(
+                        filePath: GlobalSet.Files.WebhooksJson,
+                        content: content);
+
+                    await Task.Delay(500).ContinueWith(async task => await BackTo());
+                });
+        }
+        catch (Exception ex)
+        {
+            await AlertUtil.ShowErrorAlert(ex.Message);
+        }
+        finally
+        {
+            isWebhookNameDisabled = false;
+            isWebhookUrlDisabled = false;
+            isBtnSaveDisabled = false;
+            isBtnBackToDisabled = false;
+        }
+    }
+
+    /// <summary>
+    /// 返回
+    /// </summary>
+    /// <returns>Task</returns>
+    private async Task BackTo()
+    {
+        try
+        {
+            navigationManager.NavigateTo("webhooks");
+        }
+        catch (Exception ex)
+        {
+            await AlertUtil.ShowErrorAlert(ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// 儲存檔案
+    /// </summary>
+    /// <param name="filePath">字串，檔案路徑</param>
+    /// <param name="content">字串，文字內容</param>
+    /// <param name="ct">CancellationToken</param>
+    /// <returns>Task</returns>
+    private async Task SaveToFile(
+        string filePath,
+        string content,
+        CancellationToken ct = default)
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(filePath))
+            {
+                await AlertUtil.ShowToast($"檔案路徑不得為空。", ct);
+
+                return;
+            }
+
+            if (File.Exists(filePath))
+            {
+                File.Delete(filePath);
+            }
+
+            string fileName = Path.GetFileName(filePath);
+
+            using FileStream fileStream = File.OpenWrite(filePath);
+            using StreamWriter streamWriter = new(fileStream);
+
+            await streamWriter.WriteAsync(content);
+
+            await AlertUtil.ShowToast($"檔案 {fileName} 已儲存至：{filePath}。");
+        }
+        catch (Exception ex)
+        {
+            await AlertUtil.ShowErrorAlert(ex.Message);
+        }
+    }
+}

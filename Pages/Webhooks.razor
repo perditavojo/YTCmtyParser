@@ -8,7 +8,9 @@
 @using YTCmtyParser.Commons.Extensions;
 @using YTCmtyParser.Commons.Utils;
 @using YTCmtyParser.Data;
+@inject NavigationManager navigationManager;
 
+<h1>管理 Webhook</h1>
 <div class="card mb-2">
     <div class="card-body">
         <div class="col-12">
@@ -60,7 +62,7 @@
                     </button>
                     &nbsp;
                     <button class="btn btn-outline-danger mb-1"
-                            @onclick="async () => await DeleteChannels()">
+                            @onclick="async () => await DeleteWebhooks()">
                         <span class="oi oi-trash" aria-hidden="true"></span>
                         &nbsp;
                         刪除全部
@@ -86,6 +88,12 @@
                 {
                     <tr>
                         <th scope="row">
+                            <button class="btn btn-outline-primary btn-sm mb-1"
+                            @onclick="async () =>  await EditWebhook(webhookData.Name)">
+                                <span class="oi oi-pencil" aria-hidden="true"></span>
+                                &nbsp;編輯
+                            </button>
+                            &nbsp;
                             <button class="btn btn-outline-danger btn-sm mb-1"
                             @onclick="async () => await DeleteWebhook(webhookData.Name)">
                                 <span class="oi oi-trash" aria-hidden="true"></span>
@@ -241,6 +249,30 @@
     }
 
     /// <summary>
+    /// 編輯 Webhook
+    /// </summary>
+    /// <param name="webhookName">字串，Webhook 的名稱</param>
+    /// <returns>Task</returns>
+    private async Task EditWebhook(string? webhookName)
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(webhookName))
+            {
+                await AlertUtil.ShowToast("編輯 Webhook 失敗，傳入的 Webhook 名稱為空值或 Null。");
+
+                return;
+            }
+
+            navigationManager.NavigateTo($"webhooks/edit/{webhookName}");
+        }
+        catch (Exception ex)
+        {
+            await AlertUtil.ShowErrorAlert(ex.Message);
+        }
+    }
+
+    /// <summary>
     /// 刪除 Webhook
     /// </summary>
     /// <param name="name">字串，Webhook 的名稱</param>
@@ -320,6 +352,11 @@
                 await AlertUtil.ShowToast($"檔案路徑不得為空。", ct);
 
                 return;
+            }
+
+            if (File.Exists(filePath))
+            {
+                File.Delete(filePath);
             }
 
             string fileName = Path.GetFileName(filePath);
@@ -463,10 +500,10 @@
     }
 
     /// <summary>
-    /// 刪除 YouTube 頻道
+    /// 刪除 Webhook
     /// </summary>
     /// <returns>Task</returns>
-    private async Task DeleteChannels()
+    private async Task DeleteWebhooks()
     {
         try
         {
@@ -481,7 +518,16 @@
 
             if (sharedWebhooks?.Any() == false)
             {
-                await AlertUtil.ShowToast("刪除失敗，請先新增 Webhook。");
+                if (File.Exists(GlobalSet.Files.WebhooksJson))
+                {
+                    File.Delete(GlobalSet.Files.WebhooksJson);
+
+                    await AlertUtil.ShowToast($"已刪除檔案：{GlobalSet.Files.WebhooksJson}。");
+                }
+                else
+                {
+                    await AlertUtil.ShowToast("刪除失敗，請先新增 Webhook。");
+                }
 
                 return;
             }

@@ -95,7 +95,11 @@
                            @bind="enableSetDataUri"
                            @bind:event="oninput"
                            @onchange="(evt) => SaveSetting(evt.Value)" />
-                    <label for="cbSetDataUri" class="form-check-label">設定資料統一資源標識符</label>&nbsp;
+                    <label for="cbSetDataUri"
+                           class="form-check-label"
+                           title="獲取圖片的 Data URI ※在 Android 作業系統上不會使用 Data URI 顯示圖片">
+                        設定資料統一資源標識符
+                    </label>
                 </div>
             </div>
             <div class="text-end">
