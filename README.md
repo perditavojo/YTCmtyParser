@@ -24,4 +24,3 @@
 1. 本應用程式僅支援`正體中文`。
 2. 本應用程式是以 `Hl = "zh-TW", Gl = "TW"` 等語系參數來取得 YouTube 社群的貼文內容。
 3. 僅支援有開啟 YouTube 社群功能的 YouTube 頻道。
-4. 因為不明原因，MAUI 的部分功能在 Android 系統上所需要的權限，會無法正常的被請求，故 `android:targetSdkVersion` 會被限制在 `32`（Android 12）。
