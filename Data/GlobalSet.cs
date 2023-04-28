@@ -1,4 +1,6 @@
-﻿namespace YTCmtyParser.Data;
+﻿using YTCmtyParser.Commons.Utils;
+
+namespace YTCmtyParser.Data;
 
 /// <summary>
 /// 全域組
@@ -50,5 +52,52 @@ public static class GlobalSet
         /// Webhooks.json
         /// </summary>
         public static readonly string WebhooksJson = Path.Combine(FileSystem.Current.AppDataDirectory, "Webhooks.json");
+    }
+
+    /// <summary>
+    /// 函式
+    /// </summary>
+    public static class Functions
+    {
+        /// <summary>
+        /// 儲存檔案
+        /// </summary>
+        /// <param name="filePath">字串，檔案路徑</param>
+        /// <param name="content">字串，文字內容</param>
+        /// <param name="ct">CancellationToken</param>
+        /// <returns>Task</returns>
+        public static async Task SaveToFile(
+            string filePath,
+            string content,
+            CancellationToken ct = default)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(filePath))
+                {
+                    await AlertUtil.ShowToast($"檔案路徑不得為空。", ct);
+
+                    return;
+                }
+
+                if (File.Exists(filePath))
+                {
+                    File.Delete(filePath);
+                }
+
+                string fileName = Path.GetFileName(filePath);
+
+                using FileStream fileStream = File.OpenWrite(filePath);
+                using StreamWriter streamWriter = new(fileStream);
+
+                await streamWriter.WriteAsync(content);
+
+                await AlertUtil.ShowToast($"檔案 {fileName} 已儲存至：{filePath}。");
+            }
+            catch (Exception ex)
+            {
+                await AlertUtil.ShowErrorAlert(ex.Message);
+            }
+        }
     }
 }

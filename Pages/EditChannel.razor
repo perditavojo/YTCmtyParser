@@ -1,0 +1,263 @@
+﻿@page "/channels/edit/{inputChannelName}"
+
+@using CommunityToolkit.Maui.Storage;
+@using System.Text;
+@using System.Text.RegularExpressions;
+@using System.Text.Json;
+@using YTApi.Commons.Models;
+@using YTCmtyParser.Commons.Extensions;
+@using YTCmtyParser.Commons.Utils;
+@using YTCmtyParser.Data;
+@inject NavigationManager navigationManager;
+
+<h1>編輯 YouTube頻道</h1>
+<div class="card mb-2">
+    <div class="card-body">
+        <div class="col-12">
+            <div class="mb-2">
+                <label for="iChannelName" class="form-label">YouTube 頻道名稱</label>
+                <input id="iChannelName" type="text"
+                       class="form-control"
+                       @bind="sharedChannelName"
+                       placeholder="名稱"
+                       disabled="@isChannelNameDisabled"></input>
+            </div>
+            <div class="mb-2">
+                <label for="iChannelUrl" class="form-label">YouTube 頻道網址</label>
+                <input id="iChannelUrl" type="url"
+                       class="form-control"
+                       @bind="sharedChannelUrl"
+                       placeholder="網址"
+                       disabled="@isChannelUrlDisabled"></input>
+            </div>
+            <div class="text-end mb-2">
+                <button class="btn btn-success mb-1"
+                        @onclick="async () => await Save()"
+                        disabled="@isBtnSaveDisabled">
+                    <span class="oi oi-check" aria-hidden="true"></span>
+                    &nbsp;儲存
+                </button>
+                &nbsp;
+                <button class="btn btn-outline-secondary mb-1"
+                        @onclick="async () => await BackTo()"
+                        disabled="@isBtnBackToDisabled">
+                    <span class="oi oi-action-undo" aria-hidden="true"></span>
+                    &nbsp;返回
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string? inputChannelName { get; set; }
+
+    // 來源：https://stackoverflow.com/a/31726735
+    private static Regex ChannelUrlRegex = new Regex(
+        @"((http(s)?:\/\/)?)(www\.)?((youtube\.com\/)|(youtu.be\/))[\S]+",
+        RegexOptions.Compiled |
+        RegexOptions.IgnoreCase |
+        RegexOptions.CultureInvariant);
+
+    // 元件的啟用、禁用控制。
+    protected bool isChannelNameDisabled { get; set; } = false;
+    protected bool isChannelUrlDisabled { get; set; } = false;
+    protected bool isBtnSaveDisabled { get; set; } = false;
+    protected bool isBtnBackToDisabled { get; set; } = false;
+
+    // 變數。
+    private string? sharedChannelName = string.Empty;
+    private string? sharedChannelUrl = string.Empty;
+    private List<ChannelData>? sharedChannels = new();
+    private ChannelData? sharedChannelData = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (string.IsNullOrEmpty(inputChannelName))
+        {
+            // TODO: 2023-04-28 待完成。
+
+            await AlertUtil.ShowSnackbar(
+                message: $"找不到要編輯的 YouTube 頻道資料：{inputChannelName}。",
+                action: async () =>
+                {
+                    await BackTo();
+                });
+
+            return;
+        }
+
+        await LoadPrefs();
+
+        await Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// 載入設定
+    /// </summary>
+    /// <returns>Task</returns>
+    private async Task LoadPrefs()
+    {
+        try
+        {
+            if (File.Exists(GlobalSet.Files.ChannelsJson))
+            {
+                using FileStream fileStream = File.OpenRead(GlobalSet.Files.ChannelsJson);
+
+                sharedChannels = await JsonSerializer
+                    .DeserializeAsync<List<ChannelData>>(fileStream);
+
+                sharedChannelData = sharedChannels?.FirstOrDefault(n => n.Name == inputChannelName);
+
+                if (sharedChannelData == null)
+                {
+                    // TODO: 2023-04-28 待完成。
+
+                    await AlertUtil.ShowSnackbar(
+                        message: $"[2] 找不到要編輯的 YouTube 頻道資料：{inputChannelName}。",
+                        action: async () => {
+                            await BackTo();
+                        });
+
+                    return;
+                }
+
+                sharedChannelName = sharedChannelData?.Name;
+                sharedChannelUrl = sharedChannelData?.Url;
+            }
+        }
+        catch (Exception ex)
+        {
+            await AlertUtil.ShowErrorAlert(ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// 儲存
+    /// </summary>
+    /// <returns>Task</returns>
+    private async Task Save()
+    {
+        try
+        {
+            isChannelNameDisabled = true;
+            isChannelUrlDisabled = true;
+            isBtnSaveDisabled = true;
+            isBtnBackToDisabled = true;
+
+            if (string.IsNullOrEmpty(sharedChannelName))
+            {
+                sharedChannelName = string.Empty;
+
+                await AlertUtil.ShowToast("請輸入 YouTube 頻道名稱。");
+
+                return;
+            }
+            else
+            {
+                if (sharedChannels?.Any(n => n != sharedChannelData &&
+                    n.Name == sharedChannelName) == true)
+                {
+                    sharedChannelName = string.Empty;
+
+                    await AlertUtil.ShowToast($"YouTube 頻道名稱 \"{sharedChannelName}\" 不可重複。");
+
+                    return;
+                }
+            }
+
+            if (!string.IsNullOrEmpty(sharedChannelUrl) &&
+                !ChannelUrlRegex.IsMatch(sharedChannelUrl))
+            {
+                sharedChannelUrl = string.Empty;
+
+                await AlertUtil.ShowToast("請輸入有效的 YouTube 頻道網址。");
+
+                return;
+            }
+
+            if (sharedChannels?.Any(n => n != sharedChannelData &&
+                n.Url == sharedChannelUrl) == true)
+            {
+                string message = "YouTube 頻道網址不可重複。";
+
+                ChannelData? channelData = sharedChannels
+                    .FirstOrDefault(n => n != sharedChannelData &&
+                        n.Url == sharedChannelUrl);
+
+                if (channelData != null)
+                {
+                    message = message.Replace("。", $"，此 YouTube 頻道網址已被 YouTube 頻道 \"{channelData.Name}\" 使用。");
+                }
+
+                sharedChannelUrl = string.Empty;
+
+                await AlertUtil.ShowToast(message);
+
+                return;
+            }
+
+            if (string.IsNullOrEmpty(sharedChannelName) ||
+                string.IsNullOrEmpty(sharedChannelUrl))
+            {
+                await AlertUtil.ShowToast("請輸入 YouTube 頻道名稱或 YouTube 頻道網址。");
+
+                return;
+            }
+
+            if (sharedChannels != null)
+            {
+                foreach (ChannelData channelData in sharedChannels)
+                {
+                    if (channelData == sharedChannelData)
+                    {
+                        channelData.Name = sharedChannelName;
+                        channelData.Url = sharedChannelUrl;
+
+                        break;
+                    }
+                }
+            }
+
+            await AlertUtil.ShowToast($"已修改 YouTube 頻道 \"{inputChannelName}\"。")
+                .ContinueWith(async task =>
+                {
+                    string content = sharedChannels?.ToJsonString() ?? string.Empty;
+
+                    await GlobalSet.Functions.SaveToFile(
+                        filePath: GlobalSet.Files.ChannelsJson,
+                        content: content);
+
+                    await Task.Delay(500).ContinueWith(async task => await BackTo());
+                });
+        }
+        catch (Exception ex)
+        {
+            await AlertUtil.ShowErrorAlert(ex.Message);
+        }
+        finally
+        {
+            isChannelNameDisabled = false;
+            isChannelUrlDisabled = false;
+            isBtnSaveDisabled = false;
+            isBtnBackToDisabled = false;
+        }
+    }
+
+    /// <summary>
+    /// 返回
+    /// </summary>
+    /// <returns>Task</returns>
+    private async Task BackTo()
+    {
+        try
+        {
+            navigationManager.NavigateTo("channels");
+        }
+        catch (Exception ex)
+        {
+            await AlertUtil.ShowErrorAlert(ex.Message);
+        }
+    }
+}

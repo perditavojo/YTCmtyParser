@@ -78,6 +78,20 @@
 
     protected override async Task OnInitializedAsync()
     {
+        if (string.IsNullOrEmpty(inputWebhookName))
+        {
+            // TODO: 2023-04-28 待完成。
+
+            await AlertUtil.ShowSnackbar(
+                message: $"找不到要編輯的 Webhook 資料：{inputWebhookName}。",
+                action: async () =>
+                {
+                    await BackTo();
+                });
+
+            return;
+        }
+
         await LoadPrefs();
 
         await Task.CompletedTask;
@@ -99,6 +113,20 @@
                     .DeserializeAsync<List<WebhookData>>(fileStream);
 
                 sharedWebhookData = sharedWebhooks?.FirstOrDefault(n => n.Name == inputWebhookName);
+
+                if (sharedWebhookData == null)
+                {
+                    // TODO: 2023-04-28 待完成。
+
+                    await AlertUtil.ShowSnackbar(
+                        message: $"找不到要編輯的 Webhook 資料：{inputWebhookName}。",
+                        action: async () =>
+                        {
+                            await BackTo();
+                        });
+
+                    return;
+                }
 
                 sharedWebhookName = sharedWebhookData?.Name;
                 sharedWebhookUrl = sharedWebhookData?.Url;
@@ -201,7 +229,7 @@
                 {
                     string content = sharedWebhooks?.ToJsonString() ?? string.Empty;
 
-                    await SaveToFile(
+                    await GlobalSet.Functions.SaveToFile(
                         filePath: GlobalSet.Files.WebhooksJson,
                         content: content);
 
@@ -230,47 +258,6 @@
         try
         {
             navigationManager.NavigateTo("webhooks");
-        }
-        catch (Exception ex)
-        {
-            await AlertUtil.ShowErrorAlert(ex.Message);
-        }
-    }
-
-    /// <summary>
-    /// 儲存檔案
-    /// </summary>
-    /// <param name="filePath">字串，檔案路徑</param>
-    /// <param name="content">字串，文字內容</param>
-    /// <param name="ct">CancellationToken</param>
-    /// <returns>Task</returns>
-    private async Task SaveToFile(
-        string filePath,
-        string content,
-        CancellationToken ct = default)
-    {
-        try
-        {
-            if (string.IsNullOrEmpty(filePath))
-            {
-                await AlertUtil.ShowToast($"檔案路徑不得為空。", ct);
-
-                return;
-            }
-
-            if (File.Exists(filePath))
-            {
-                File.Delete(filePath);
-            }
-
-            string fileName = Path.GetFileName(filePath);
-
-            using FileStream fileStream = File.OpenWrite(filePath);
-            using StreamWriter streamWriter = new(fileStream);
-
-            await streamWriter.WriteAsync(content);
-
-            await AlertUtil.ShowToast($"檔案 {fileName} 已儲存至：{filePath}。");
         }
         catch (Exception ex)
         {

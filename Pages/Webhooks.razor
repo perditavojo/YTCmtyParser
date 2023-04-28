@@ -47,14 +47,14 @@
         <div class="col-12">
             <div class="row">
                 <div>
-                    <button class="btn btn-outline-primary mb-1"
+                    <button class="btn btn-outline-info mb-1"
                             @onclick="async () => await ImportJsonFile()">
                         <span class="oi oi-data-transfer-upload" aria-hidden="true"></span>
                         &nbsp;
                         匯入 JSON 檔案
                     </button>
                     &nbsp;
-                    <button class="btn btn-outline-primary mb-1"
+                    <button class="btn btn-outline-info mb-1"
                             @onclick="async () => await ExportJsonFile()">
                         <span class="oi oi-data-transfer-download" aria-hidden="true"></span>
                         &nbsp;
@@ -88,7 +88,7 @@
                 {
                     <tr>
                         <th scope="row">
-                            <button class="btn btn-outline-primary btn-sm mb-1"
+                            <button class="btn btn-outline-warning btn-sm mb-1"
                             @onclick="async () =>  await EditWebhook(webhookData.Name)">
                                 <span class="oi oi-pencil" aria-hidden="true"></span>
                                 &nbsp;編輯
@@ -232,7 +232,7 @@
                 {
                     string content = sharedWebhooks?.ToJsonString() ?? string.Empty;
 
-                    await SaveToFile(
+                    await GlobalSet.Functions.SaveToFile(
                         filePath: GlobalSet.Files.WebhooksJson,
                         content: content);
                 })
@@ -251,20 +251,20 @@
     /// <summary>
     /// 編輯 Webhook
     /// </summary>
-    /// <param name="webhookName">字串，Webhook 的名稱</param>
+    /// <param name="inputWebhookName">字串，輸入的 Webhook 的名稱</param>
     /// <returns>Task</returns>
-    private async Task EditWebhook(string? webhookName)
+    private async Task EditWebhook(string? inputWebhookName)
     {
         try
         {
-            if (string.IsNullOrEmpty(webhookName))
+            if (string.IsNullOrEmpty(inputWebhookName))
             {
                 await AlertUtil.ShowToast("編輯 Webhook 失敗，傳入的 Webhook 名稱為空值或 Null。");
 
                 return;
             }
 
-            navigationManager.NavigateTo($"webhooks/edit/{webhookName}");
+            navigationManager.NavigateTo($"webhooks/edit/{inputWebhookName}");
         }
         catch (Exception ex)
         {
@@ -314,7 +314,7 @@
                     {
                         string content = sharedWebhooks?.ToJsonString() ?? string.Empty;
 
-                        await SaveToFile(
+                        await GlobalSet.Functions.SaveToFile(
                             filePath: GlobalSet.Files.WebhooksJson,
                             content: content);
                     }
@@ -326,47 +326,6 @@
                         }
                     }
                 });
-        }
-        catch (Exception ex)
-        {
-            await AlertUtil.ShowErrorAlert(ex.Message);
-        }
-    }
-
-    /// <summary>
-    /// 儲存檔案
-    /// </summary>
-    /// <param name="filePath">字串，檔案路徑</param>
-    /// <param name="content">字串，文字內容</param>
-    /// <param name="ct">CancellationToken</param>
-    /// <returns>Task</returns>
-    private async Task SaveToFile(
-        string filePath,
-        string content,
-        CancellationToken ct = default)
-    {
-        try
-        {
-            if (string.IsNullOrEmpty(filePath))
-            {
-                await AlertUtil.ShowToast($"檔案路徑不得為空。", ct);
-
-                return;
-            }
-
-            if (File.Exists(filePath))
-            {
-                File.Delete(filePath);
-            }
-
-            string fileName = Path.GetFileName(filePath);
-
-            using FileStream fileStream = File.OpenWrite(filePath);
-            using StreamWriter streamWriter = new(fileStream);
-
-            await streamWriter.WriteAsync(content);
-
-            await AlertUtil.ShowToast($"檔案 {fileName} 已儲存至：{filePath}。");
         }
         catch (Exception ex)
         {
@@ -428,7 +387,7 @@
 
                         string content = sharedWebhooks?.ToJsonString() ?? string.Empty;
 
-                        await SaveToFile(
+                        await GlobalSet.Functions.SaveToFile(
                             filePath: GlobalSet.Files.ChannelsJson,
                             content: content);
 
@@ -536,7 +495,7 @@
 
             string content = sharedWebhooks?.ToJsonString() ?? string.Empty;
 
-            await SaveToFile(
+            await GlobalSet.Functions.SaveToFile(
                 filePath: GlobalSet.Files.ChannelsJson,
                 content: content);
 
