@@ -4,6 +4,7 @@
 @using System.Text;
 @using System.Text.RegularExpressions;
 @using System.Text.Json;
+@using System.Web;
 @using YTApi.Commons.Models;
 @using YTCmtyParser.Commons.Extensions;
 @using YTCmtyParser.Commons.Utils;
@@ -74,10 +75,11 @@
 
     protected override async Task OnInitializedAsync()
     {
+        // 解碼 inputChannelName。
+        inputChannelName = HttpUtility.UrlDecode(inputChannelName);
+
         if (string.IsNullOrEmpty(inputChannelName))
         {
-            // TODO: 2023-04-28 待完成。
-
             await AlertUtil.ShowSnackbar(
                 message: $"找不到要編輯的 YouTube 頻道資料：{inputChannelName}。",
                 action: async () =>
@@ -112,11 +114,10 @@
 
                 if (sharedChannelData == null)
                 {
-                    // TODO: 2023-04-28 待完成。
-
                     await AlertUtil.ShowSnackbar(
-                        message: $"[2] 找不到要編輯的 YouTube 頻道資料：{inputChannelName}。",
-                        action: async () => {
+                        message: $"找不到要編輯的 YouTube 頻道資料：{inputChannelName}。",
+                        action: async () =>
+                        {
                             await BackTo();
                         });
 

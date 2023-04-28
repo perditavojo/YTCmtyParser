@@ -4,6 +4,7 @@
 @using System.Text;
 @using System.Text.RegularExpressions;
 @using System.Text.Json;
+@using System.Web;
 @using YTApi.Commons.Models;
 @using YTCmtyParser.Commons.Extensions;
 @using YTCmtyParser.Commons.Utils;
@@ -78,10 +79,11 @@
 
     protected override async Task OnInitializedAsync()
     {
+        // 解碼 inputWebhookName。
+        inputWebhookName = HttpUtility.UrlDecode(inputWebhookName);
+
         if (string.IsNullOrEmpty(inputWebhookName))
         {
-            // TODO: 2023-04-28 待完成。
-
             await AlertUtil.ShowSnackbar(
                 message: $"找不到要編輯的 Webhook 資料：{inputWebhookName}。",
                 action: async () =>
@@ -116,8 +118,6 @@
 
                 if (sharedWebhookData == null)
                 {
-                    // TODO: 2023-04-28 待完成。
-
                     await AlertUtil.ShowSnackbar(
                         message: $"找不到要編輯的 Webhook 資料：{inputWebhookName}。",
                         action: async () =>

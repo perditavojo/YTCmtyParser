@@ -4,6 +4,7 @@
 @using System.Text;
 @using System.Text.RegularExpressions;
 @using System.Text.Json;
+@using System.Web;
 @using YTApi.Commons.Models;
 @using YTCmtyParser.Commons.Extensions;
 @using YTCmtyParser.Commons.Utils;
@@ -264,7 +265,8 @@
                 return;
             }
 
-            navigationManager.NavigateTo($"webhooks/edit/{inputWebhookName}");
+            // 編碼 inputWebhookName。
+            navigationManager.NavigateTo($"webhooks/edit/{HttpUtility.UrlEncode(inputWebhookName)}");
         }
         catch (Exception ex)
         {
