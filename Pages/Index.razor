@@ -848,21 +848,43 @@
 
             using MemoryStream memoryStream = new(bytes);
 
-            FileSaverResult fileSaverResult = await FileSaver.Default
-                .SaveAsync(
-                    fileName: $"YouTube_Community_Posts_{DateTime.Now:yyyyMMddHHmmss}.json",
-                    stream: memoryStream,
-                    cancellationToken: ct);
+            string fileName = $"YouTube_Community_Posts_{DateTime.Now:yyyyMMddHHmmss}.json";
 
-            fileSaverResult.EnsureSuccess();
+            FileSaverResult? fileSaverResult = null;
 
-            if (fileSaverResult.IsSuccessful)
+            if (DeviceInfo.Platform == DevicePlatform.Android &&
+                OperatingSystem.IsAndroidVersionAtLeast(33))
+            {
+#if ANDROID
+
+    AndroidFileSaver androidFileSaver = new();
+
+    fileSaverResult = await androidFileSaver.SaveAsync(
+       fileName: fileName,
+       stream: memoryStream,
+       cancellationToken: ct);
+
+#endif
+            }
+            else
+            {
+                fileSaverResult = await FileSaver.Default.SaveAsync(
+                   fileName: fileName,
+                   stream: memoryStream,
+                   cancellationToken: ct);
+            }
+
+            fileSaverResult?.EnsureSuccess();
+
+            if (fileSaverResult?.IsSuccessful == true)
             {
                 await AlertUtil.ShowToast($"檔案已儲存至：{fileSaverResult.FilePath}");
             }
             else
             {
-                await AlertUtil.ShowErrorAlert(fileSaverResult.Exception.Message);
+                string errMsg = fileSaverResult?.Exception?.Message ?? string.Empty;
+
+                await AlertUtil.ShowErrorAlert(errMsg);
             }
         }
         catch (Exception ex)
@@ -913,21 +935,43 @@
 
             using MemoryStream memoryStream = new(bytes);
 
-            FileSaverResult fileSaverResult = await FileSaver.Default
-                .SaveAsync(
-                    fileName: $"YouTube_Community_Post_{postID}_{DateTime.Now:yyyyMMddHHmmss}.json",
-                    stream: memoryStream,
-                    cancellationToken: ct);
+            string fileName = $"YouTube_Community_Post_{postID}_{DateTime.Now:yyyyMMddHHmmss}.json";
 
-            fileSaverResult.EnsureSuccess();
+            FileSaverResult? fileSaverResult = null;
 
-            if (fileSaverResult.IsSuccessful)
+            if (DeviceInfo.Platform == DevicePlatform.Android &&
+                OperatingSystem.IsAndroidVersionAtLeast(33))
+            {
+#if ANDROID
+
+    AndroidFileSaver androidFileSaver = new();
+
+    fileSaverResult = await androidFileSaver.SaveAsync(
+       fileName: fileName,
+       stream: memoryStream,
+       cancellationToken: ct);
+
+#endif
+            }
+            else
+            {
+                fileSaverResult = await FileSaver.Default.SaveAsync(
+                   fileName: fileName,
+                   stream: memoryStream,
+                   cancellationToken: ct);
+            }
+
+            fileSaverResult?.EnsureSuccess();
+
+            if (fileSaverResult?.IsSuccessful == true)
             {
                 await AlertUtil.ShowToast($"檔案已儲存至：{fileSaverResult.FilePath}");
             }
             else
             {
-                await AlertUtil.ShowErrorAlert(fileSaverResult.Exception.Message);
+                string errMsg = fileSaverResult?.Exception?.Message ?? string.Empty;
+
+                await AlertUtil.ShowErrorAlert(errMsg);
             }
         }
         catch (Exception ex)
