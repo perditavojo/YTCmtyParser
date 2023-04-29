@@ -1,18 +1,20 @@
 ﻿@using YTCmtyParser.Commons.Utils;
 @inherits LayoutComponentBase
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
-    <main>
-        <div class="top-row px-4">
-            <a href="about">關於</a>
+<div class="container-fluid">
+    <div class="page">
+        <div class="sidebar">
+            <NavMenu />
         </div>
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
+        <main>
+            <div class="top-row px-4">
+                <a href="about">關於</a>
+            </div>
+            <article class="content px-4">
+                @Body
+            </article>
+        </main>
+    </div>
 </div>
 
 @code {

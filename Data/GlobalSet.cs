@@ -92,7 +92,9 @@ public static class GlobalSet
 
                 await streamWriter.WriteAsync(content);
 
-                await AlertUtil.ShowToast($"檔案 {fileName} 已儲存至：{filePath}。");
+                await AlertUtil.ShowToast(
+                    message: $"檔案 {fileName} 已儲存至：{filePath}。",
+                    ct: ct);
             }
             catch (Exception ex)
             {

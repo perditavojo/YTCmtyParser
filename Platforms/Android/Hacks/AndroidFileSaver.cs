@@ -22,6 +22,7 @@ public sealed class AndroidFileSaver : IFileSaver
     {
         FileSaveException? fileSaveException = null;
 
+        // 用以避免在 Android API Level 為 33 或以上版本時，繼續請求 Storage 權限的情況。
         if (DeviceInfo.Platform == DevicePlatform.Android &&
             !OperatingSystem.IsAndroidVersionAtLeast(33))
         {

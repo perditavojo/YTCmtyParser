@@ -221,16 +221,20 @@
                 }
             }
 
-            await AlertUtil.ShowToast($"已修改 YouTube 頻道 \"{inputChannelName}\"。")
-                .ContinueWith(async task =>
+            string content = sharedChannels?.ToJsonString() ?? string.Empty;
+
+            await GlobalSet.Functions.SaveToFile(
+                    filePath: GlobalSet.Files.ChannelsJson,
+                    content: content)
+                .ContinueWith(async (task) =>
                 {
-                    string content = sharedChannels?.ToJsonString() ?? string.Empty;
-
-                    await GlobalSet.Functions.SaveToFile(
-                        filePath: GlobalSet.Files.ChannelsJson,
-                        content: content);
-
-                    await Task.Delay(500).ContinueWith(async task => await BackTo());
+                    await Task.Delay(1500);
+                    await AlertUtil.ShowToast($"已修改 YouTube 頻道 \"{inputChannelName}\"。");
+                })
+                .Unwrap()
+                .ContinueWith(async (task) =>
+                {
+                    await BackTo();
                 });
         }
         catch (Exception ex)
