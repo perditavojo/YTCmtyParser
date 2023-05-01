@@ -5,13 +5,19 @@ namespace YTApi.Commons.Models;
 /// <summary>
 /// 附件資料類別
 /// </summary>
-public partial class AttachmentData
+public class AttachmentData
 {
     /// <summary>
     /// 網址
     /// </summary>
     [JsonPropertyName("url")]
     public string? Url { get; set; }
+
+    /// <summary>
+    /// 資料統一資源標識符
+    /// </summary>
+    [JsonPropertyName("dataUri")]
+    public string? DataUri { get; set; }
 
     /// <summary>
     /// 是否為影片
@@ -24,4 +30,16 @@ public partial class AttachmentData
     /// </summary>
     [JsonPropertyName("videoData")]
     public VideoData? VideoData { get; set; }
+
+    /// <summary>
+    /// 是否為投票
+    /// </summary>
+    [JsonPropertyName("isPoll")]
+    public bool IsPoll { get; set; } = false;
+
+    /// <summary>
+    /// 投票資料
+    /// </summary>
+    [JsonPropertyName("pollData")]
+    public PollData? PollData { get; set; }
 }

@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using Microsoft.Maui.Controls.Handlers.Compatibility;
+using System.Text.Json;
 using YTApi.Commons.Extensions;
 using YTApi.Commons.Models;
 using YTApi.Commons.Sets;
@@ -272,6 +273,7 @@ public static class JsonParser
         JsonElement? postMultiImageRenderer = backstageAttachment?.Get("postMultiImageRenderer");
         JsonElement? backstageImageRenderer = backstageAttachment?.Get("backstageImageRenderer");
         JsonElement? videoRenderer = backstageAttachment?.Get("videoRenderer");
+        JsonElement? pollRenderer = backstageAttachment?.Get("pollRenderer");
 
         // 有多張圖片附件。
         if (postMultiImageRenderer != null)
@@ -321,7 +323,22 @@ public static class JsonParser
                 {
                     Url = videoData.ThumbnailUrl,
                     IsVideo = true,
-                    VideoData = GetVideoData(jsonElement: videoRenderer)
+                    VideoData = videoData
+                });
+            }
+        }
+
+        // 有投票附件。
+        if (pollRenderer != null)
+        {
+            PollData? pollData = GetPollData(jsonElement: pollRenderer);
+
+            if (pollData != null)
+            {
+                attachmentDatas.Add(new AttachmentData()
+                {
+                    IsPoll = true,
+                    PollData = pollData
                 });
             }
         }
@@ -522,6 +539,118 @@ public static class JsonParser
         }
 
         return string.Empty;
+    }
+
+    /// <summary>
+    /// 取得 backstageAttachment 的 pollRenderer
+    /// </summary>
+    /// <param name="jsonElement">JsonElement</param>
+    /// <returns>VideoData</returns>
+    public static PollData? GetPollData(JsonElement? jsonElement)
+    {
+        return new PollData()
+        {
+            ChoiceDatas = GetPollRendererChoices(jsonElement: jsonElement),
+            TotalVotes = GetPollRendererTotalVotes(jsonElement: jsonElement)
+        };
+    }
+
+    /// <summary>
+    /// 取得 pollRenderer 的 totalVotes 的字串
+    /// </summary>
+    /// <param name="jsonElement">JsonElement</param>
+    /// <returns>字串</returns>
+    public static string? GetPollRendererTotalVotes(JsonElement? jsonElement)
+    {
+        return jsonElement?.Get("totalVotes")?.Get("simpleText")?.GetString();
+    }
+
+    /// <summary>
+    /// 取得 pollRenderer 的 choices
+    /// </summary>
+    /// <param name="jsonElement">JsonElement</param>
+    /// <returns>List&lt;ChoiceData&gt;</returns>
+    public static List<ChoiceData>? GetPollRendererChoices(JsonElement? jsonElement)
+    {
+        List<ChoiceData> choiceDatas = new();
+
+        JsonElement.ArrayEnumerator? choices = jsonElement?.Get("choices")?.GetArrayEnumerator();
+
+        if (choices != null)
+        {
+            foreach (JsonElement choice in choices)
+            {
+                string? text = GetChoicesText(jsonElement: choice);
+
+                if (string.IsNullOrEmpty(text))
+                {
+                    continue;
+                }
+
+                choiceDatas.Add(new ChoiceData()
+                {
+                    Text = text,
+                    ImageUrl = GetChoicesImage(jsonElement: choice),
+                    VotePercentage = GetChoicesVotePercentageIfNotSelected(jsonElement: choice)
+                });
+            }
+        }
+
+        return choiceDatas.Any() ? choiceDatas : null;
+    }
+
+    /// <summary>
+    /// 取得 pollRenderer 的 choices 的每個項目的 text 的字串
+    /// </summary>
+    /// <param name="jsonElement">JsonElement</param>
+    /// <returns>字串</returns>
+    public static string? GetChoicesText(JsonElement? jsonElement)
+    {
+        string? runText = string.Empty;
+
+        JsonElement.ArrayEnumerator? runs = jsonElement?.Get("text")
+            ?.Get("runs")
+            ?.GetArrayEnumerator();
+
+        if (runs != null)
+        {
+            // 理論上只會有一筆。
+            foreach (JsonElement run in runs)
+            {
+                RunData? runData = GetRun(run);
+
+                if (runData != null)
+                {
+                    runText += $"{runData.Text} ";
+                }
+            }
+        }
+
+        return string.IsNullOrEmpty(runText) ? null : runText.TrimEnd();
+    }
+
+    /// <summary>
+    /// 取得 pollRenderer 的 choices 的每個項目的 votePercentageIfNotSelected 的字串
+    /// </summary>
+    /// <param name="jsonElement">JsonElement</param>
+    /// <returns>字串</returns>
+    public static string? GetChoicesVotePercentageIfNotSelected(JsonElement? jsonElement)
+    {
+        return jsonElement?.Get("votePercentageIfNotSelected")?.Get("simpleText")?.GetString();
+    }
+
+    /// <summary>
+    /// 取得 pollRenderer 的 choices 的每個項目的 image 的 thumbnail 的網址字串
+    /// </summary>
+    /// <param name="jsonElement">JsonElement</param>
+    /// <returns>字串</returns>
+    public static string? GetChoicesImage(JsonElement? jsonElement)
+    {
+        JsonElement.ArrayEnumerator? thumbnails = jsonElement?.Get("image")
+            ?.Get("thumbnails")
+            ?.GetArrayEnumerator();
+
+        return GetThumbnailUrl(arrayEnumerator: thumbnails, width: 0);
     }
 
     /// <summary>

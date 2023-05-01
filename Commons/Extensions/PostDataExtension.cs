@@ -73,6 +73,39 @@ public static partial class PostDataExtension
                         stringBuilder.AppendLine($"所有者：{videoData.OwnerText}");
                     }
                 }
+                else if (attachment.IsPoll == true)
+                {
+                    PollData? pollData = attachment.PollData;
+
+                    if (pollData != null)
+                    {
+                        List<ChoiceData>? choiceDatas = pollData.ChoiceDatas;
+
+                        if (choiceDatas?.Any() == true)
+                        {
+                            stringBuilder.AppendLine("投票選項：");
+
+                            foreach (ChoiceData choiceData in choiceDatas)
+                            {
+                                string? suffix = string.Empty;
+
+                                if (!string.IsNullOrEmpty(suffix))
+                                {
+                                    suffix = $"（{choiceData.VotePercentage}）";
+                                }
+
+                                stringBuilder.AppendLine($"{choiceData.Text}{suffix}");
+
+                                if (!string.IsNullOrEmpty(choiceData.ImageUrl))
+                                {
+                                    stringBuilder.AppendLine($"圖片網址：{choiceData.ImageUrl}");
+                                }
+                            }
+
+                            stringBuilder.AppendLine($"總投票票數：{pollData?.TotalVotes}");
+                        }
+                    }
+                }
                 else
                 {
                     stringBuilder.AppendLine(attachment.Url);

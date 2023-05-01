@@ -276,45 +276,116 @@
                                 {
                                     VideoData? videoData = attachmentData.VideoData;
 
-                                    string? attachmentUrl = videoData?.ThumbnailUrl;
-
-                                    if (DeviceInfo.Platform != DevicePlatform.Android)
+                                    if (videoData != null)
                                     {
-                                        attachmentUrl = string.IsNullOrEmpty(attachmentData.DataUri) ?
-                                        videoData?.ThumbnailUrl :
-                                        attachmentData.DataUri;
-                                    }
+                                        string? attachmentUrl = videoData?.ThumbnailUrl;
 
-                                    <a href="@videoData?.ThumbnailUrl" target="_blank">
-                                        <img class="card-img-top" src="@attachmentUrl" alt="影片的預覽圖">
-                                    </a>
-                                    <div class="card-body">
-                                        <h5 class="card-title">
-                                            <a class="card-link" href="@videoData?.Url" target="_blank">@videoData?.Title</a>
-                                        </h5>
-                                        <h6 class="card-subtitle mb-2 text-muted">
-                                            <span class="oi oi-person" aria-hidden="true"></span>
-                                            &nbsp;
-                                            @videoData?.OwnerText?.TrimStart().TrimEnd()
-                                        </h6>
-                                        <p class="card-text">
-                                            <span class="oi oi-calendar" aria-hidden="true"></span>
-                                            &nbsp;
-                                            @videoData?.PublishedTimeText?.TrimStart().TrimEnd()
-                                        </p>
-                                        <p class="card-text">
-                                            <span class="oi oi-timer" aria-hidden="true"></span>
-                                            &nbsp;
-                                            @videoData?.LengthText?.TrimStart().TrimEnd()
-                                        </p>
-                                        <p class="card-text">
-                                            <span class="oi oi-info" aria-hidden="true"></span>
-                                            &nbsp;簡述：
-                                        </p>
-                                        <div style="white-space: pre-wrap; line-break: anywhere;">
-                                            @videoData?.DescriptionSnippet?.TrimStart().TrimEnd()
+                                        if (DeviceInfo.Platform != DevicePlatform.Android)
+                                        {
+                                            attachmentUrl = string.IsNullOrEmpty(attachmentData.DataUri) ?
+                                            videoData?.ThumbnailUrl :
+                                            attachmentData.DataUri;
+                                        }
+
+                                        <a href="@videoData?.ThumbnailUrl" target="_blank">
+                                            <img class="card-img-top" src="@attachmentUrl" alt="影片的預覽圖">
+                                        </a>
+                                        <div class="card-body">
+                                            <h5 class="card-title">
+                                                <a class="card-link" href="@videoData?.Url" target="_blank">@videoData?.Title</a>
+                                            </h5>
+                                            <h6 class="card-subtitle mb-2 text-muted">
+                                                <span class="oi oi-person" aria-hidden="true"></span>
+                                                &nbsp;
+                                                @videoData?.OwnerText?.TrimStart().TrimEnd()
+                                            </h6>
+                                            <p class="card-text">
+                                                <span class="oi oi-calendar" aria-hidden="true"></span>
+                                                &nbsp;
+                                                @videoData?.PublishedTimeText?.TrimStart().TrimEnd()
+                                            </p>
+                                            <p class="card-text">
+                                                <span class="oi oi-timer" aria-hidden="true"></span>
+                                                &nbsp;
+                                                @videoData?.LengthText?.TrimStart().TrimEnd()
+                                            </p>
+                                            <p class="card-text">
+                                                <span class="oi oi-info" aria-hidden="true"></span>
+                                                &nbsp;簡述：
+                                            </p>
+                                            <div style="white-space: pre-wrap; line-break: anywhere;">
+                                                @videoData?.DescriptionSnippet?.TrimStart().TrimEnd()
+                                            </div>
                                         </div>
-                                    </div>
+                                    }
+                                }
+                                else if (attachmentData.IsPoll)
+                                {
+                                    PollData? pollData = attachmentData?.PollData;
+                                    List<ChoiceData>? choiceDatas = pollData?.ChoiceDatas;
+
+                                    if (pollData != null && choiceDatas != null)
+                                    {
+                                        <div class="card-body">
+                                            <hr />
+                                            <h5 class="card-title">
+                                                投票選項：
+                                            </h5>
+                                        </div>
+                                        <div class="row row-cols-1 g-2 ms-2 me-2 mb-2">
+                                            @foreach (ChoiceData choiceData in choiceDatas)
+                                            {
+                                                string? attachmentUrl = choiceData?.ImageUrl;
+
+                                                if (DeviceInfo.Platform != DevicePlatform.Android)
+                                                {
+                                                    attachmentUrl = string.IsNullOrEmpty(choiceData?.ImageDataUri) ?
+                                                    choiceData?.ImageUrl :
+                                                    choiceData?.ImageDataUri;
+                                                }
+                                                <div class="col">
+                                                    <div class="card">
+                                                        <div class="row g-0">
+                                                            @if (!string.IsNullOrEmpty(choiceData?.ImageUrl))
+                                                            {
+                                                                <div class="col-md-4">
+                                                                    <a href="@choiceData?.ImageUrl" target="_blank">
+                                                                        <img src="@attachmentUrl" class="img-fluid rounded-start" alt="@choiceData?.Text">
+                                                                    </a>
+                                                                </div>
+                                                                <div class="col-md-8">
+                                                                    <div class="card-body">
+                                                                        <h5 class="card-title">@choiceData?.Text</h5>
+                                                                        @if (!string.IsNullOrEmpty(choiceData?.Text))
+                                                                        {
+                                                                            <p class="card-text">@choiceData?.VotePercentage</p>
+                                                                        }
+                                                                    </div>
+                                                                </div>
+                                                            }
+                                                            else
+                                                            {
+                                                                <div class="col-md-12">
+                                                                    <div class="card-body">
+                                                                        <h5 class="card-title">@choiceData?.Text</h5>
+                                                                        @if (!string.IsNullOrEmpty(choiceData?.Text))
+                                                                        {
+                                                                            <p class="card-text">@choiceData?.VotePercentage</p>
+                                                                        }
+                                                                    </div>
+                                                                </div>
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+                                        <div class="card-body">
+                                            <p class="card-text">
+                                                總投票票數：@pollData?.TotalVotes
+                                            </p>
+                                        </div>
+                                    }
                                 }
                                 else
                                 {
@@ -1432,6 +1503,41 @@
                 {
                     return null;
                 }
+
+                string? imageUrl = attachmentData?.VideoData?.ThumbnailUrl;
+
+                byte[]? imageBytes = await DiscordUtil.GetImageBytes(imageUrl);
+
+                if (imageBytes == null)
+                {
+                    return null;
+                }
+
+                if (attachmentData != null)
+                {
+                    attachmentData.DataUri = $"data:image/jpeg;base64,{Convert.ToBase64String(imageBytes)}";
+                }
+
+                return attachmentData?.DataUri;
+            }
+            else if (attachmentData.IsPoll)
+            {
+                if (attachmentData?.PollData?.ChoiceDatas == null)
+                {
+                    return null;
+                }
+
+                attachmentData?.PollData?.ChoiceDatas?.ForEach(async (ChoiceData choiceData) =>
+                {
+                    string? imageUrl = choiceData.ImageUrl;
+
+                    byte[]? imageBytes = await DiscordUtil.GetImageBytes(imageUrl);
+
+                    if (imageBytes != null)
+                    {
+                        choiceData.ImageDataUri = $"data:image/jpeg;base64,{Convert.ToBase64String(imageBytes)}";
+                    }
+                });
             }
             else
             {
@@ -1439,23 +1545,23 @@
                 {
                     return null;
                 }
+
+                string? imageUrl = attachmentData.Url;
+
+                byte[]? imageBytes = await DiscordUtil.GetImageBytes(imageUrl);
+
+                if (imageBytes == null)
+                {
+                    return null;
+                }
+
+                if (attachmentData != null)
+                {
+                    attachmentData.DataUri = $"data:image/jpeg;base64,{Convert.ToBase64String(imageBytes)}";
+                }
+
+                return attachmentData?.DataUri;
             }
-
-            string? imageUrl = attachmentData.IsVideo ? attachmentData?.VideoData?.ThumbnailUrl : attachmentData.Url;
-
-            byte[]? imageBytes = await DiscordUtil.GetImageBytes(imageUrl);
-
-            if (imageBytes == null)
-            {
-                return null;
-            }
-
-            if (attachmentData != null)
-            {
-                attachmentData.DataUri = $"data:image/jpeg;base64,{Convert.ToBase64String(imageBytes)}";
-            }
-
-            return attachmentData?.DataUri;
         }
         catch (Exception ex)
         {

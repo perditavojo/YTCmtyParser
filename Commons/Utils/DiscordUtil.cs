@@ -65,16 +65,7 @@ public class DiscordUtil
 
             foreach (AttachmentData? attachmentData in postData.Attachments)
             {
-                if (!attachmentData.IsVideo)
-                {
-                    byte[]? imageBytes = await GetImageBytes(attachmentData?.Url);
-
-                    if (imageBytes != null)
-                    {
-                        fileSet.Add(new DiscordFile($"image{index}.jpg", imageBytes));
-                    }
-                }
-                else
+                if (attachmentData.IsVideo)
                 {
                     List<DiscordMessageEmbedField> fields = new();
 
@@ -117,6 +108,43 @@ public class DiscordUtil
                         footer: new DiscordMessageEmbedFooter(
                             text: attachmentData?.VideoData?.OwnerText,
                             iconUrl: null)));
+                }
+                else if (attachmentData.IsPoll)
+                {
+                    PollData? pollData = attachmentData?.PollData;
+
+                    List<ChoiceData>? choiceDatas = pollData?.ChoiceDatas;
+
+                    if (choiceDatas != null)
+                    {
+                        content += $"{Environment.NewLine}投票選項：{Environment.NewLine}";
+
+                        foreach (ChoiceData choiceData in choiceDatas)
+                        {
+                            if (!string.IsNullOrEmpty(choiceData.Text))
+                            {
+                                content += $"- {choiceData.Text}{Environment.NewLine}";
+                            }
+
+                            byte[]? imageBytes = await GetImageBytes(choiceData?.ImageUrl);
+
+                            if (imageBytes != null)
+                            {
+                                fileSet.Add(new DiscordFile($"image{index}{($"_{choiceData?.Text}" ?? string.Empty)}.jpg", imageBytes));
+                            }
+                        }
+
+                        content += $"總投票票數：{pollData?.TotalVotes}";
+                    }
+                }
+                else
+                {
+                    byte[]? imageBytes = await GetImageBytes(attachmentData?.Url);
+
+                    if (imageBytes != null)
+                    {
+                        fileSet.Add(new DiscordFile($"image{index}.jpg", imageBytes));
+                    }
                 }
 
                 index++;

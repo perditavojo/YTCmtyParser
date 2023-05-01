@@ -5,7 +5,7 @@ namespace YTApi.Commons.Models;
 /// <summary>
 /// 貼文資料類別
 /// </summary>
-public partial class PostData
+public class PostData
 {
     /// <summary>
     /// 貼文 ID
@@ -30,6 +30,12 @@ public partial class PostData
     /// </summary>
     [JsonPropertyName("authorThumbnailUrl")]
     public string? AuthorThumbnailUrl { get; set; }
+
+    /// <summary>
+    /// 作者頭像資料統一資源標識符
+    /// </summary>
+    [JsonPropertyName("authorThumbnailDataUri")]
+    public string? AuthorThumbnailDataUri { get; set; }
 
     /// <summary>
     /// 內容文字
@@ -60,4 +66,10 @@ public partial class PostData
     /// </summary>
     [JsonPropertyName("isSponsorsOnly")]
     public bool IsSponsorsOnly { get; set; } = false;
+
+    /// <summary>
+    /// 已勾選
+    /// </summary>
+    [JsonIgnore]
+    public bool IsChecked { get; set; } = false;
 }
