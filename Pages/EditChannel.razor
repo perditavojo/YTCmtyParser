@@ -8,7 +8,9 @@
 @using YTApi.Commons.Models;
 @using YTCmtyParser.Commons.Extensions;
 @using YTCmtyParser.Commons.Utils;
+@using YTCmtyParser.Commons;
 @using YTCmtyParser.Data;
+@using YTCmtyParser.Commons.Sets;
 @inject NavigationManager navigationManager;
 
 <h1>編輯 YouTube頻道</h1>
@@ -103,9 +105,9 @@
     {
         try
         {
-            if (File.Exists(GlobalSet.Files.ChannelsJson))
+            if (File.Exists(FileSet.ChannelsJson))
             {
-                using FileStream fileStream = File.OpenRead(GlobalSet.Files.ChannelsJson);
+                using FileStream fileStream = File.OpenRead(FileSet.ChannelsJson);
 
                 sharedChannels = await JsonSerializer
                     .DeserializeAsync<List<ChannelData>>(fileStream);
@@ -223,8 +225,8 @@
 
             string content = sharedChannels?.ToJsonString() ?? string.Empty;
 
-            await GlobalSet.Functions.SaveToFile(
-                    filePath: GlobalSet.Files.ChannelsJson,
+            await CustomFunction.SaveToFile(
+                    filePath: FileSet.ChannelsJson,
                     content: content)
                 .ContinueWith(async (task) =>
                 {

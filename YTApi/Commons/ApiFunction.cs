@@ -15,9 +15,9 @@ using IElement = AngleSharp.Dom.IElement;
 namespace YTApi.Commons;
 
 /// <summary>
-/// 函式類別
+/// API 函式類別
 /// </summary>
-public static class Functions
+public static class ApiFunction
 {
     /// <summary>
     /// 從 YouTube 頻道自定義網址取得頻道 ID

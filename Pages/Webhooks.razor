@@ -7,7 +7,9 @@
 @using System.Web;
 @using YTApi.Commons.Models;
 @using YTCmtyParser.Commons.Extensions;
+@using YTCmtyParser.Commons.Sets;
 @using YTCmtyParser.Commons.Utils;
+@using YTCmtyParser.Commons;
 @using YTCmtyParser.Data;
 @inject NavigationManager navigationManager;
 
@@ -144,9 +146,9 @@
     {
         try
         {
-            if (File.Exists(GlobalSet.Files.WebhooksJson))
+            if (File.Exists(FileSet.WebhooksJson))
             {
-                using FileStream fileStream = File.OpenRead(GlobalSet.Files.WebhooksJson);
+                using FileStream fileStream = File.OpenRead(FileSet.WebhooksJson);
 
                 sharedWebhooks = await JsonSerializer
                     .DeserializeAsync<List<WebhookData>>(fileStream);
@@ -233,8 +235,8 @@
                 {
                     string content = sharedWebhooks?.ToJsonString() ?? string.Empty;
 
-                    await GlobalSet.Functions.SaveToFile(
-                        filePath: GlobalSet.Files.WebhooksJson,
+                    await CustomFunction.SaveToFile(
+                        filePath: FileSet.WebhooksJson,
                         content: content);
                 })
                 .ContinueWith(task =>
@@ -316,15 +318,15 @@
                     {
                         string content = sharedWebhooks?.ToJsonString() ?? string.Empty;
 
-                        await GlobalSet.Functions.SaveToFile(
-                            filePath: GlobalSet.Files.WebhooksJson,
+                        await CustomFunction.SaveToFile(
+                            filePath: FileSet.WebhooksJson,
                             content: content);
                     }
                     else
                     {
-                        if (File.Exists(GlobalSet.Files.WebhooksJson))
+                        if (File.Exists(FileSet.WebhooksJson))
                         {
-                            File.Delete(GlobalSet.Files.WebhooksJson);
+                            File.Delete(FileSet.WebhooksJson);
                         }
                     }
                 });
@@ -389,8 +391,8 @@
 
                         string content = sharedWebhooks?.ToJsonString() ?? string.Empty;
 
-                        await GlobalSet.Functions.SaveToFile(
-                            filePath: GlobalSet.Files.ChannelsJson,
+                        await CustomFunction.SaveToFile(
+                            filePath: FileSet.ChannelsJson,
                             content: content);
 
                         await AlertUtil.ShowToast("已匯入 JSON 檔案。");
@@ -442,16 +444,16 @@
             FileSaverResult? fileSaverResult = null;
 
             if (DeviceInfo.Platform == DevicePlatform.Android &&
-                OperatingSystem.IsAndroidVersionAtLeast(33))
+                OperatingSystem.IsAndroidVersionAtLeast(30))
             {
 #if ANDROID
 
-        AndroidFileSaver androidFileSaver = new();
+    AndroidFileSaver androidFileSaver = new();
 
-        fileSaverResult = await androidFileSaver.SaveAsync(
-           fileName: fileName,
-           stream: memoryStream,
-           cancellationToken: ct);
+    fileSaverResult = await androidFileSaver.SaveAsync(
+       fileName: fileName,
+       stream: memoryStream,
+       cancellationToken: ct);
 
 #endif
             }
@@ -501,11 +503,11 @@
 
             if (sharedWebhooks?.Any() == false)
             {
-                if (File.Exists(GlobalSet.Files.WebhooksJson))
+                if (File.Exists(FileSet.WebhooksJson))
                 {
-                    File.Delete(GlobalSet.Files.WebhooksJson);
+                    File.Delete(FileSet.WebhooksJson);
 
-                    await AlertUtil.ShowToast($"已刪除檔案：{GlobalSet.Files.WebhooksJson}。");
+                    await AlertUtil.ShowToast($"已刪除檔案：{FileSet.WebhooksJson}。");
                 }
                 else
                 {
@@ -519,8 +521,8 @@
 
             string content = sharedWebhooks?.ToJsonString() ?? string.Empty;
 
-            await GlobalSet.Functions.SaveToFile(
-                filePath: GlobalSet.Files.ChannelsJson,
+            await CustomFunction.SaveToFile(
+                filePath: FileSet.ChannelsJson,
                 content: content);
 
             await AlertUtil.ShowToast("已刪除全部的 Webhook。");

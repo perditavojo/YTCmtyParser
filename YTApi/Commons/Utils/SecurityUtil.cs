@@ -1,7 +1,7 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
 
-namespace YTApi.Commons;
+namespace YTApi.Commons.Utils;
 
 /// <summary>
 /// 安全工具類別

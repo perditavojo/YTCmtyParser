@@ -75,7 +75,3 @@ main {
         padding-right: 1.5rem !important;
     }
 }
-
-.container-fluid {
-    --bs-gutter-x: 0 !important;
-}

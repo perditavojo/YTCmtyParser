@@ -134,7 +134,7 @@ public class DiscordUtil
                             }
                         }
 
-                        content += $"總投票票數：{pollData?.TotalVotes}";
+                        content += $"總投票票數：{pollData?.TotalVotes}{Environment.NewLine}";
                     }
                 }
                 else

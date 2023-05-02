@@ -7,7 +7,9 @@
 @using System.Web;
 @using YTApi.Commons.Models;
 @using YTCmtyParser.Commons.Extensions;
+@using YTCmtyParser.Commons.Sets;
 @using YTCmtyParser.Commons.Utils;
+@using YTCmtyParser.Commons;
 @using YTCmtyParser.Data;
 @inject NavigationManager navigationManager;
 
@@ -140,9 +142,9 @@
     {
         try
         {
-            if (File.Exists(GlobalSet.Files.ChannelsJson))
+            if (File.Exists(FileSet.ChannelsJson))
             {
-                using FileStream fileStream = File.OpenRead(GlobalSet.Files.ChannelsJson);
+                using FileStream fileStream = File.OpenRead(FileSet.ChannelsJson);
 
                 sharedChannels = await JsonSerializer
                     .DeserializeAsync<List<ChannelData>>(fileStream);
@@ -229,8 +231,8 @@
                 {
                     string content = sharedChannels?.ToJsonString() ?? string.Empty;
 
-                    await GlobalSet.Functions.SaveToFile(
-                        filePath: GlobalSet.Files.ChannelsJson,
+                    await CustomFunction.SaveToFile(
+                        filePath: FileSet.ChannelsJson,
                         content: content);
                 })
                 .ContinueWith(task =>
@@ -312,15 +314,15 @@
                     {
                         string content = sharedChannels?.ToJsonString() ?? string.Empty;
 
-                        await GlobalSet.Functions.SaveToFile(
-                            filePath: GlobalSet.Files.ChannelsJson,
+                        await CustomFunction.SaveToFile(
+                            filePath: FileSet.ChannelsJson,
                             content: content);
                     }
                     else
                     {
-                        if (File.Exists(GlobalSet.Files.ChannelsJson))
+                        if (File.Exists(FileSet.ChannelsJson))
                         {
-                            File.Delete(GlobalSet.Files.ChannelsJson);
+                            File.Delete(FileSet.ChannelsJson);
                         }
                     }
                 });
@@ -385,8 +387,8 @@
 
                         string content = sharedChannels?.ToJsonString() ?? string.Empty;
 
-                        await GlobalSet.Functions.SaveToFile(
-                            filePath: GlobalSet.Files.ChannelsJson,
+                        await CustomFunction.SaveToFile(
+                            filePath: FileSet.ChannelsJson,
                             content: content);
 
                         await AlertUtil.ShowToast("已匯入 JSON 檔案。");
@@ -435,29 +437,10 @@
 
             string fileName = $"YTCmtyParser_Channels_{DateTime.Now:yyyyMMddHHmmss}.json";
 
-            FileSaverResult? fileSaverResult = null;
-
-            if (DeviceInfo.Platform == DevicePlatform.Android &&
-                OperatingSystem.IsAndroidVersionAtLeast(33))
-            {
-#if ANDROID
-
-        AndroidFileSaver androidFileSaver = new();
-
-        fileSaverResult = await androidFileSaver.SaveAsync(
-           fileName: fileName,
-           stream: memoryStream,
-           cancellationToken: ct);
-
-#endif
-            }
-            else
-            {
-                fileSaverResult = await FileSaver.Default.SaveAsync(
-                   fileName: fileName,
-                   stream: memoryStream,
-                   cancellationToken: ct);
-            }
+            FileSaverResult? fileSaverResult = await CustomFunction.GetFileSaverResult(
+                fileName: fileName,
+                stream: memoryStream,
+                cancellationToken: ct);
 
             fileSaverResult?.EnsureSuccess();
 
@@ -497,11 +480,11 @@
 
             if (sharedChannels?.Any() == false)
             {
-                if (File.Exists(GlobalSet.Files.ChannelsJson))
+                if (File.Exists(FileSet.ChannelsJson))
                 {
-                    File.Delete(GlobalSet.Files.ChannelsJson);
+                    File.Delete(FileSet.ChannelsJson);
 
-                    await AlertUtil.ShowToast($"已刪除檔案：{GlobalSet.Files.ChannelsJson}。");
+                    await AlertUtil.ShowToast($"已刪除檔案：{FileSet.ChannelsJson}。");
                 }
                 else
                 {
@@ -515,8 +498,8 @@
 
             string content = sharedChannels?.ToJsonString() ?? string.Empty;
 
-            await GlobalSet.Functions.SaveToFile(
-                filePath: GlobalSet.Files.ChannelsJson,
+            await CustomFunction.SaveToFile(
+                filePath: FileSet.ChannelsJson,
                 content: content);
 
             await AlertUtil.ShowToast("已刪除全部的 YouTube 頻道。");

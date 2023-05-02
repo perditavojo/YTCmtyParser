@@ -1,94 +1,25 @@
 ﻿@using YTCmtyParser.Commons.Utils;
+@using YTCmtyParser.Commons;
 @inherits LayoutComponentBase
 
-<div class="container-fluid">
-    <div class="page">
-        <div class="sidebar">
-            <NavMenu />
-        </div>
-        <main>
-            <div class="top-row px-4">
-                <a href="about">關於</a>
-            </div>
-            <article class="content px-4">
-                @Body
-            </article>
-        </main>
+<div class="page">
+    <div class="sidebar">
+        <NavMenu />
     </div>
+    <main>
+        <div class="top-row px-4">
+            <a href="about">關於</a>
+        </div>
+        <article class="content px-4">
+            @Body
+        </article>
+    </main>
 </div>
 
 @code {
     protected override async Task OnInitializedAsync()
     {
-        // 當作業系統為 Android 時才需要執行。
-        if (DeviceInfo.Platform == DevicePlatform.Android)
-        {
-            // 在 API Level 小於 33 前都要執行。
-            if (!OperatingSystem.IsAndroidVersionAtLeast(33))
-            {   // API Level 32。
-                await CheckAndRequestStorageReadPermission();
-
-                // API Level 29。
-                await CheckAndRequestStorageWritePermission();
-            }
-        }
-
+        await CustomFunction.CheckPermissions();
         await Task.CompletedTask;
-    }
-
-    /// <summary>
-    /// 檢查並請求 StorageRead 權限
-    /// </summary>
-    /// <returns>Task&lt;PermissionStatus&gt;</returns>
-    public async Task<PermissionStatus> CheckAndRequestStorageReadPermission()
-    {
-        PermissionStatus status = await Permissions.CheckStatusAsync<Permissions.StorageRead>();
-
-        if (status == PermissionStatus.Granted)
-        {
-            return status;
-        }
-
-        if (Permissions.ShouldShowRationale<Permissions.StorageRead>())
-        {
-            await AlertUtil.ShowSnackbar("需要您允許此權限請求，用以獲得載入 JSON 檔案的能力。", async () =>
-            {
-                status = await Permissions.RequestAsync<Permissions.StorageRead>();
-            });
-        }
-        else
-        {
-            status = await Permissions.RequestAsync<Permissions.StorageRead>();
-        }
-
-        return status;
-    }
-
-    /// <summary>
-    /// 檢查並請求 StorageWrite 權限
-    /// </summary>
-    /// <returns>Task&lt;PermissionStatus&gt;</returns>
-    public async Task<PermissionStatus> CheckAndRequestStorageWritePermission()
-    {
-        PermissionStatus status = await Permissions.CheckStatusAsync<Permissions.StorageWrite>();
-
-        if (status == PermissionStatus.Granted)
-        {
-            return status;
-        }
-
-        if (Permissions.ShouldShowRationale<Permissions.StorageWrite>())
-        {
-            await AlertUtil.ShowSnackbar("需要您允許此權限請求，用以獲得匯出 JSON 檔案的能力。", async () =>
-            {
-                status = await Permissions.RequestAsync<Permissions.StorageWrite>();
-            });
-        }
-        else
-        {
-            status = await Permissions.RequestAsync<Permissions.StorageWrite>();
-        }
-
-        return status;
     }
 }

@@ -8,7 +8,9 @@
 @using YTApi.Commons.Models;
 @using YTCmtyParser.Commons.Extensions;
 @using YTCmtyParser.Commons.Utils;
+@using YTCmtyParser.Commons;
 @using YTCmtyParser.Data;
+@using YTCmtyParser.Commons.Sets;
 @inject NavigationManager navigationManager;
 
 <h1>編輯 Webhook</h1>
@@ -107,9 +109,9 @@
     {
         try
         {
-            if (File.Exists(GlobalSet.Files.WebhooksJson))
+            if (File.Exists(FileSet.WebhooksJson))
             {
-                using FileStream fileStream = File.OpenRead(GlobalSet.Files.WebhooksJson);
+                using FileStream fileStream = File.OpenRead(FileSet.WebhooksJson);
 
                 sharedWebhooks = await JsonSerializer
                     .DeserializeAsync<List<WebhookData>>(fileStream);
@@ -225,8 +227,8 @@
             }
             string content = sharedWebhooks?.ToJsonString() ?? string.Empty;
 
-            await GlobalSet.Functions.SaveToFile(
-                    filePath: GlobalSet.Files.WebhooksJson,
+            await CustomFunction.SaveToFile(
+                    filePath: FileSet.WebhooksJson,
                     content: content)
                 .ContinueWith(async (task) =>
                 {

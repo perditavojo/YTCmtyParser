@@ -1,12 +1,7 @@
 ﻿@page "/cookies"
 
-@using CommunityToolkit.Maui.Storage;
-@using System.Text;
-@using System.Text.RegularExpressions;
-@using YTApi.Commons.Models;
-@using YTCmtyParser.Commons.Extensions;
+@using YTCmtyParser.Commons.Sets;
 @using YTCmtyParser.Commons.Utils;
-@using YTCmtyParser.Data;
 
 <h1>設定 Cookies</h1>
 <div class="card mb-2">
@@ -119,25 +114,25 @@
     {
         try
         {
-            bool hasBrowserType = PreferencesUtil.HasKey(GlobalSet.Keys.BrowserType);
-            bool hasProfileName = PreferencesUtil.HasKey(GlobalSet.Keys.ProfileName);
-            bool hasCookies = PreferencesUtil.HasKey(GlobalSet.Keys.Cookies);
-            bool hasUseCookies = PreferencesUtil.HasKey(GlobalSet.Keys.UseCookies);
+            bool hasBrowserType = PreferencesUtil.HasKey(KeySet.BrowserType);
+            bool hasProfileName = PreferencesUtil.HasKey(KeySet.ProfileName);
+            bool hasCookies = PreferencesUtil.HasKey(KeySet.Cookies);
+            bool hasUseCookies = PreferencesUtil.HasKey(KeySet.UseCookies);
 
             sharedBrowserType = hasBrowserType ?
-                PreferencesUtil.GetStringValue(GlobalSet.Keys.BrowserType) :
+                PreferencesUtil.GetStringValue(KeySet.BrowserType) :
                 string.Empty;
 
             sharedProfileName = hasProfileName ?
-                PreferencesUtil.GetStringValue(GlobalSet.Keys.ProfileName) :
+                PreferencesUtil.GetStringValue(KeySet.ProfileName) :
                 string.Empty;
 
             sharedCookies = hasCookies ?
-                PreferencesUtil.GetStringValue(GlobalSet.Keys.Cookies) :
+                PreferencesUtil.GetStringValue(KeySet.Cookies) :
                 string.Empty;
 
             sharedUseCookies = hasUseCookies ?
-                PreferencesUtil.GetBooleanValue(GlobalSet.Keys.UseCookies) :
+                PreferencesUtil.GetBooleanValue(KeySet.UseCookies) :
                 false;
         }
         catch (Exception ex)
@@ -154,24 +149,24 @@
     {
         try
         {
-            if (PreferencesUtil.GetStringValue(GlobalSet.Keys.BrowserType) != sharedBrowserType)
+            if (PreferencesUtil.GetStringValue(KeySet.BrowserType) != sharedBrowserType)
             {
-                PreferencesUtil.SetValue(GlobalSet.Keys.BrowserType, sharedBrowserType);
+                PreferencesUtil.SetValue(KeySet.BrowserType, sharedBrowserType);
             }
 
-            if (PreferencesUtil.GetStringValue(GlobalSet.Keys.ProfileName) != sharedProfileName)
+            if (PreferencesUtil.GetStringValue(KeySet.ProfileName) != sharedProfileName)
             {
-                PreferencesUtil.SetValue(GlobalSet.Keys.ProfileName, sharedProfileName);
+                PreferencesUtil.SetValue(KeySet.ProfileName, sharedProfileName);
             }
 
-            if (PreferencesUtil.GetStringValue(GlobalSet.Keys.Cookies) != sharedCookies)
+            if (PreferencesUtil.GetStringValue(KeySet.Cookies) != sharedCookies)
             {
-                PreferencesUtil.SetValue(GlobalSet.Keys.Cookies, sharedCookies);
+                PreferencesUtil.SetValue(KeySet.Cookies, sharedCookies);
             }
 
-            if (PreferencesUtil.GetBooleanValue(GlobalSet.Keys.UseCookies) != sharedUseCookies)
+            if (PreferencesUtil.GetBooleanValue(KeySet.UseCookies) != sharedUseCookies)
             {
-                PreferencesUtil.SetValue(GlobalSet.Keys.UseCookies, sharedUseCookies);
+                PreferencesUtil.SetValue(KeySet.UseCookies, sharedUseCookies);
             }
 
             await AlertUtil.ShowToast("已儲存 Cookies 設定。");
@@ -190,10 +185,10 @@
     {
         try
         {
-            PreferencesUtil.RemoveKey(GlobalSet.Keys.BrowserType);
-            PreferencesUtil.RemoveKey(GlobalSet.Keys.ProfileName);
-            PreferencesUtil.RemoveKey(GlobalSet.Keys.Cookies);
-            PreferencesUtil.RemoveKey(GlobalSet.Keys.UseCookies);
+            PreferencesUtil.RemoveKey(KeySet.BrowserType);
+            PreferencesUtil.RemoveKey(KeySet.ProfileName);
+            PreferencesUtil.RemoveKey(KeySet.Cookies);
+            PreferencesUtil.RemoveKey(KeySet.UseCookies);
 
             await LoadPrefs();
 

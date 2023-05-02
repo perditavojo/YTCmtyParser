@@ -1,16 +1,14 @@
 ﻿@page "/"
 
-@using System.Security.Cryptography;
-@using System.Text;
 @using System.Text.Json;
+@using System.Text;
 @using CommunityToolkit.Maui.Storage;
-@using YTApi.Commons;
 @using YTApi.Commons.Models;
-@using YTApi.Commons.Sets;
-@using YTCmtyParser.Commons;
+@using YTApi.Commons;
 @using YTCmtyParser.Commons.Extensions;
+@using YTCmtyParser.Commons.Sets;
 @using YTCmtyParser.Commons.Utils;
-@using static YTCmtyParser.Commons.Utils.BrowserUtil;
+@using YTCmtyParser.Commons;
 @using YTCmtyParser.Data;
 @inject IHttpClientFactory httpClientFactory;
 @inject YTCmtyService ytCmtyService;
@@ -350,7 +348,7 @@
                                                             {
                                                                 <div class="col-md-4">
                                                                     <a href="@choiceData?.ImageUrl" target="_blank">
-                                                                        <img src="@attachmentUrl" class="img-fluid rounded-start" alt="@choiceData?.Text">
+                                                                        <img src="@attachmentUrl" class="img-fluid img-thumbnail rounded-start" alt="@choiceData?.Text">
                                                                     </a>
                                                                 </div>
                                                                 <div class="col-md-8">
@@ -358,7 +356,14 @@
                                                                         <h5 class="card-title">@choiceData?.Text</h5>
                                                                         @if (!string.IsNullOrEmpty(choiceData?.Text))
                                                                         {
-                                                                            <p class="card-text">@choiceData?.VotePercentage</p>
+                                                                            string value = choiceData?.VotePercentage?.Replace("%", string.Empty) ?? "0";
+
+                                                                            @if (value != "0")
+                                                                            {
+                                                                                <div class="progress" role="progressbar" aria-label="投票率" aria-valuenow="@value" aria-valuemin="0" aria-valuemax="100">
+                                                                                    <div class="progress-bar" style="width: @value%">@choiceData?.VotePercentage</div>
+                                                                                </div>
+                                                                            }
                                                                         }
                                                                     </div>
                                                                 </div>
@@ -370,7 +375,14 @@
                                                                         <h5 class="card-title">@choiceData?.Text</h5>
                                                                         @if (!string.IsNullOrEmpty(choiceData?.Text))
                                                                         {
-                                                                            <p class="card-text">@choiceData?.VotePercentage</p>
+                                                                            string value = choiceData?.VotePercentage?.Replace("%", string.Empty) ?? "0";
+
+                                                                            @if (value != "0")
+                                                                            {
+                                                                                <div class="progress" role="progressbar" aria-label="投票率" aria-valuenow="@value" aria-valuemin="0" aria-valuemax="100">
+                                                                                    <div class="progress-bar" style="width: @value%">@choiceData?.VotePercentage</div>
+                                                                                </div>
+                                                                            }
                                                                         }
                                                                     </div>
                                                                 </div>
@@ -461,19 +473,18 @@
     {
         try
         {
-            if (File.Exists(GlobalSet.Files.ChannelsJson))
+            if (File.Exists(FileSet.ChannelsJson))
             {
-                using FileStream fileStream = File.OpenRead(GlobalSet.Files.ChannelsJson);
+                using FileStream fileStream = File.OpenRead(FileSet.ChannelsJson);
 
                 sharedChannels = await JsonSerializer
                     .DeserializeAsync<List<ChannelData>>(fileStream);
             }
 
-            bool hasEnableSetDataUri = PreferencesUtil.HasKey(
-                GlobalSet.Keys.EnableSetDataUri);
+            bool hasEnableSetDataUri = PreferencesUtil.HasKey(KeySet.EnableSetDataUri);
 
             enableSetDataUri = hasEnableSetDataUri ?
-                PreferencesUtil.GetBooleanValue(GlobalSet.Keys.EnableSetDataUri) :
+                PreferencesUtil.GetBooleanValue(KeySet.EnableSetDataUri) :
                 false;
         }
         catch (Exception ex)
@@ -493,7 +504,7 @@
         {
             bool value = Convert.ToBoolean(inputValue);
 
-            PreferencesUtil.SetValue(GlobalSet.Keys.EnableSetDataUri, value);
+            PreferencesUtil.SetValue(KeySet.EnableSetDataUri, value);
 
             await AlertUtil.ShowToast($"{(value ? "已啟用" : "已停用")}設定資料統一資源標識符");
         }
@@ -520,7 +531,7 @@
 
             if (value.StartsWith("@"))
             {
-                ytChUrl = $"{StringSet.Origin}/{value}";
+                ytChUrl = $"{YTApi.Commons.Sets.StringSet.Origin}/{value}";
             }
         }
         catch (Exception ex)
@@ -586,7 +597,7 @@
                 return;
             }
 
-            string? channelID = await Functions.GetYtChID(url);
+            string? channelID = await ApiFunction.GetYtChID(url);
 
             if (string.IsNullOrEmpty(channelID))
             {
@@ -595,12 +606,13 @@
                 return;
             }
 
-            using HttpClient httpClient = GetHttpClient();
+            using HttpClient httpClient = CustomFunction.GetHttpClient(
+                httpClientFactory: httpClientFactory);
 
             InitialData initialData = await ytCmtyService.GetInitialData(
                 httpClient: httpClient,
                 channelID: channelID,
-                cookies: GetCookies());
+                cookies: CustomFunction.GetCookies());
 
             sharedReferer = initialData.Referer ?? string.Empty;
 
@@ -624,13 +636,13 @@
                         {
                             if (enableSetDataUri)
                             {
-                                await SetDataUri(postData);
+                                await CustomFunction.SetDataUri(postData);
 
                                 if (postData.Attachments != null)
                                 {
                                     foreach (AttachmentData attachmentData in postData.Attachments)
                                     {
-                                        await SetDataUri(attachmentData);
+                                        await CustomFunction.SetDataUri(attachmentData);
                                     }
                                 }
                             }
@@ -647,13 +659,13 @@
                         {
                             if (enableSetDataUri)
                             {
-                                await SetDataUri(postData);
+                                await CustomFunction.SetDataUri(postData);
 
                                 if (postData.Attachments != null)
                                 {
                                     foreach (AttachmentData attachmentData in postData.Attachments)
                                     {
-                                        await SetDataUri(attachmentData);
+                                        await CustomFunction.SetDataUri(attachmentData);
                                     }
                                 }
                             }
@@ -698,12 +710,13 @@
                 return;
             }
 
-            using HttpClient httpClient = GetHttpClient();
+            using HttpClient httpClient = CustomFunction.GetHttpClient(
+                httpClientFactory: httpClientFactory);
 
             List<PostData> oldertPosts = await ytCmtyService.GetEarlierPosts(
                 httpClient: httpClient,
                 ytConfig: sharedYTConfig,
-                cookies: GetCookies(),
+                cookies: CustomFunction.GetCookies(),
                 referer: sharedReferer);
 
             if (oldertPosts.Any())
@@ -714,13 +727,13 @@
                     {
                         if (enableSetDataUri)
                         {
-                            await SetDataUri(postData);
+                            await CustomFunction.SetDataUri(postData);
 
                             if (postData.Attachments != null)
                             {
                                 foreach (AttachmentData attachmentData in postData.Attachments)
                                 {
-                                    await SetDataUri(attachmentData);
+                                    await CustomFunction.SetDataUri(attachmentData);
                                 }
                             }
                         }
@@ -750,12 +763,13 @@
         {
             while (!string.IsNullOrEmpty(sharedYTConfig?.Continuation))
             {
-                using HttpClient httpClient = GetHttpClient();
+                using HttpClient httpClient = CustomFunction.GetHttpClient(
+                    httpClientFactory: httpClientFactory);
 
                 List<PostData> oldertPosts = await ytCmtyService.GetEarlierPosts(
                     httpClient: httpClient,
                     ytConfig: sharedYTConfig,
-                    cookies: GetCookies(),
+                    cookies: CustomFunction.GetCookies(),
                     referer: sharedReferer);
 
                 if (oldertPosts.Any())
@@ -766,13 +780,13 @@
                         {
                             if (enableSetDataUri)
                             {
-                                await SetDataUri(postData);
+                                await CustomFunction.SetDataUri(postData);
 
                                 if (postData.Attachments != null)
                                 {
                                     foreach (AttachmentData attachmentData in postData.Attachments)
                                     {
-                                        await SetDataUri(attachmentData);
+                                        await CustomFunction.SetDataUri(attachmentData);
                                     }
                                 }
                             }
@@ -782,7 +796,7 @@
                     }
                 }
 
-                await DoEasyDelay();
+                await CustomFunction.DoEasyDelay();
             }
 
             if (string.IsNullOrEmpty(sharedYTConfig?.Continuation))
@@ -921,29 +935,10 @@
 
             string fileName = $"YouTube_Community_Posts_{DateTime.Now:yyyyMMddHHmmss}.json";
 
-            FileSaverResult? fileSaverResult = null;
-
-            if (DeviceInfo.Platform == DevicePlatform.Android &&
-                OperatingSystem.IsAndroidVersionAtLeast(33))
-            {
-#if ANDROID
-
-    AndroidFileSaver androidFileSaver = new();
-
-    fileSaverResult = await androidFileSaver.SaveAsync(
-       fileName: fileName,
-       stream: memoryStream,
-       cancellationToken: ct);
-
-#endif
-            }
-            else
-            {
-                fileSaverResult = await FileSaver.Default.SaveAsync(
-                   fileName: fileName,
-                   stream: memoryStream,
-                   cancellationToken: ct);
-            }
+            FileSaverResult? fileSaverResult = await CustomFunction.GetFileSaverResult(
+                fileName: fileName,
+                stream: memoryStream,
+                cancellationToken: ct);
 
             fileSaverResult?.EnsureSuccess();
 
@@ -1008,29 +1003,10 @@
 
             string fileName = $"YouTube_Community_Post_{postID}_{DateTime.Now:yyyyMMddHHmmss}.json";
 
-            FileSaverResult? fileSaverResult = null;
-
-            if (DeviceInfo.Platform == DevicePlatform.Android &&
-                OperatingSystem.IsAndroidVersionAtLeast(33))
-            {
-#if ANDROID
-
-    AndroidFileSaver androidFileSaver = new();
-
-    fileSaverResult = await androidFileSaver.SaveAsync(
-       fileName: fileName,
-       stream: memoryStream,
-       cancellationToken: ct);
-
-#endif
-            }
-            else
-            {
-                fileSaverResult = await FileSaver.Default.SaveAsync(
-                   fileName: fileName,
-                   stream: memoryStream,
-                   cancellationToken: ct);
-            }
+            FileSaverResult? fileSaverResult = await CustomFunction.GetFileSaverResult(
+                fileName: fileName,
+                stream: memoryStream,
+                cancellationToken: ct);
 
             fileSaverResult?.EnsureSuccess();
 
@@ -1068,7 +1044,7 @@
                 return;
             }
 
-            string? webhookUrl = await GetWebhookUrl();
+            string? webhookUrl = await CustomFunction.GetWebhookUrl();
 
             if (string.IsNullOrEmpty(webhookUrl))
             {
@@ -1078,7 +1054,7 @@
             foreach (PostData postData in selectedPostDatas)
             {
                 await DiscordUtil.SendToDiscord(postData, webhookUrl)
-                    .ContinueWith(async task => await DoEasyDelay());
+                    .ContinueWith(async task => await CustomFunction.DoEasyDelay());
             }
 
             await AlertUtil.ShowToast("已傳送貼文至 Discord 文字頻道。");
@@ -1114,7 +1090,7 @@
                 return;
             }
 
-            string? webhookUrl = await GetWebhookUrl();
+            string? webhookUrl = await CustomFunction.GetWebhookUrl();
 
             if (string.IsNullOrEmpty(webhookUrl))
             {
@@ -1268,306 +1244,5 @@
         {
             await AlertUtil.ShowErrorAlert(ex.Message);
         }
-    }
-
-    /// <summary>
-    /// 執行簡易延遲
-    /// </summary>
-    /// <returns>Task</returns>
-    private async Task DoEasyDelay()
-    {
-        // 簡易的隨機減速機制。
-        int delayMs = RandomNumberGenerator.GetInt32(500, 1500);
-
-        await Task.Delay(delayMs);
-    }
-
-    /// <summary>
-    /// 取得 HttpClient
-    /// </summary>
-    /// <returns>HttpClient</returns>
-    private HttpClient GetHttpClient()
-    {
-        return HttpClientUtil.GetHttpClient(
-            httpClientFactory: httpClientFactory,
-            userAgent: Commons.Sets.StringSet.UserAgent);
-    }
-
-    /// <summary>
-    /// 取得 Cookies 字串
-    /// </summary>
-    /// <returns>字串</returns>
-    private string GetCookies()
-    {
-        string cookies = string.Empty;
-
-        bool? useCookies = PreferencesUtil.GetBooleanValue(GlobalSet.Keys.UseCookies);
-
-        string tempCookies = PreferencesUtil.GetStringValue(GlobalSet.Keys.Cookies) ?? string.Empty;
-
-        if (DeviceInfo.Platform == DevicePlatform.WinUI)
-        {
-            string browserType = PreferencesUtil.GetStringValue(GlobalSet.Keys.BrowserType) ?? string.Empty;
-            string profileName = PreferencesUtil.GetStringValue(GlobalSet.Keys.ProfileName) ?? string.Empty;
-
-            if (useCookies == true)
-            {
-                if (string.IsNullOrEmpty(tempCookies))
-                {
-                    List<BrowserUtil.Cookie> listCookies = BrowserUtil.GetCookies(
-                        browser: GetBrowserType(browserType),
-                        profileName: profileName,
-                        hostKey: ".youtube.com");
-
-                    cookies = string.Join(";", listCookies.Select(n => $"{n.Name}={n.Value}"));
-                }
-                else
-                {
-                    cookies = tempCookies;
-                }
-            }
-        }
-        else
-        {
-            cookies = useCookies == true ? tempCookies : string.Empty;
-        }
-
-        return cookies;
-    }
-
-    /// <summary>
-    /// 取得網頁瀏覽器類型
-    /// </summary>
-    /// <param name="value">字串，網頁瀏覽器類型</param>
-    /// <returns>BrowserUtil.BrowserType</returns>
-    private BrowserUtil.BrowserType GetBrowserType(string value)
-    {
-        return value switch
-        {
-            nameof(BrowserUtil.BrowserType.Brave) => BrowserUtil.BrowserType.Brave,
-            nameof(BrowserUtil.BrowserType.GoogleChrome) => BrowserUtil.BrowserType.GoogleChrome,
-            nameof(BrowserUtil.BrowserType.Chromium) => BrowserUtil.BrowserType.Chromium,
-            nameof(BrowserUtil.BrowserType.MicrosoftEdge) => BrowserUtil.BrowserType.MicrosoftEdge,
-            nameof(BrowserUtil.BrowserType.Opera) => BrowserUtil.BrowserType.Opera,
-            nameof(BrowserUtil.BrowserType.OperaGX) => BrowserUtil.BrowserType.OperaGX,
-            nameof(BrowserUtil.BrowserType.Vivaldi) => BrowserUtil.BrowserType.Vivaldi,
-            nameof(BrowserUtil.BrowserType.MozillaFirefox) => BrowserUtil.BrowserType.MozillaFirefox,
-            _ => BrowserUtil.BrowserType.GoogleChrome
-        };
-    }
-
-    /// <summary>
-    /// 取得 Webhook
-    /// </summary>
-    /// <returns> Task&lt;List&lt;WebhookData&gt;&gt;</returns>
-    private async Task<List<WebhookData>?> GetWebhooks()
-    {
-        try
-        {
-            if (File.Exists(GlobalSet.Files.WebhooksJson))
-            {
-                using FileStream fileStream = File.OpenRead(GlobalSet.Files.WebhooksJson);
-
-                return await JsonSerializer
-                    .DeserializeAsync<List<WebhookData>>(fileStream);
-            }
-        }
-        catch (Exception ex)
-        {
-            await AlertUtil.ShowErrorAlert(ex.Message);
-        }
-
-        return null;
-    }
-
-    /// <summary>
-    /// 取得 Webhook 名稱組
-    /// </summary>
-    /// <param name="webhooks">List&lt;WebhookData&gt;</param>
-    /// <returns>Task&lt;string[]&gt;</returns>
-    private async Task<string?[]?> GetWebhookNames(List<WebhookData>? webhooks)
-    {
-        try
-        {
-            if (webhooks == null)
-            {
-                return null;
-            }
-
-            return webhooks.Select(n => n.Name).ToArray();
-        }
-        catch (Exception ex)
-        {
-            await AlertUtil.ShowErrorAlert(ex.Message);
-        }
-
-        return null;
-    }
-
-    /// <summary>
-    /// 取得 Webhook 的網址
-    /// </summary>
-    /// <returns>Task&lt;string&gt;</returns>
-    private async Task<string?> GetWebhookUrl()
-    {
-        try
-        {
-            List<WebhookData>? webhooks = await GetWebhooks();
-
-            string?[]? buttons = await GetWebhookNames(webhooks);
-
-            if (buttons == null || buttons.Length <= 0)
-            {
-                await AlertUtil.ShowToast("請先至管理 Webhook 畫面新增 Webhook。");
-
-                return null;
-            }
-
-            string? webhookName = await AlertUtil.ShowActionSheet(
-                title: "請選擇要使用的 Webhook",
-                buttons: buttons);
-
-            if (string.IsNullOrEmpty(webhookName) || webhookName == "取消")
-            {
-                // 點擊 Alert 外面，以讓 Alert 關閉，或是點擊取消按鈕。
-                return null;
-            }
-
-            string? webhookUrl = webhooks?.FirstOrDefault(n => n.Name == webhookName)?.Url;
-
-            if (string.IsNullOrEmpty(webhookUrl))
-            {
-                await AlertUtil.ShowToast($"找不到 Webhook \"{webhookName}\" 的 Webhook 網址。");
-
-                return null;
-            }
-
-            return webhookUrl;
-        }
-        catch (Exception ex)
-        {
-            await AlertUtil.ShowErrorAlert(ex.Message);
-        }
-
-        return null;
-    }
-
-    /// <summary>
-    /// 設定 PostData 的資料統一資源標識符
-    /// </summary>
-    /// <param name="postData">PostData</param>
-    /// <returns>Task&lt;string&gt;></returns>
-    private async Task<string?> SetDataUri(PostData postData)
-    {
-        try
-        {
-            if (string.IsNullOrEmpty(postData.AuthorThumbnailUrl))
-            {
-                return null;
-            }
-
-            byte[]? imageBytes = await DiscordUtil.GetImageBytes(postData.AuthorThumbnailUrl);
-
-            if (imageBytes == null)
-            {
-                return null;
-            }
-
-            if (postData != null)
-            {
-                postData.AuthorThumbnailDataUri = $"data:image/jpeg;base64,{Convert.ToBase64String(imageBytes)}";
-            }
-
-            return postData?.AuthorThumbnailDataUri;
-        }
-        catch (Exception ex)
-        {
-            await AlertUtil.ShowErrorAlert(ex.Message);
-        }
-
-        return null;
-    }
-
-    /// <summary>
-    /// 設定 AttachmentData 的資料統一資源標識符
-    /// </summary>
-    /// <param name="attachmentData">AttachmentData</param>
-    /// <returns>Task&lt;string&gt;></returns>
-    private async Task<string?> SetDataUri(AttachmentData attachmentData)
-    {
-        try
-        {
-            if (attachmentData.IsVideo)
-            {
-                if (string.IsNullOrEmpty(attachmentData?.VideoData?.ThumbnailUrl))
-                {
-                    return null;
-                }
-
-                string? imageUrl = attachmentData?.VideoData?.ThumbnailUrl;
-
-                byte[]? imageBytes = await DiscordUtil.GetImageBytes(imageUrl);
-
-                if (imageBytes == null)
-                {
-                    return null;
-                }
-
-                if (attachmentData != null)
-                {
-                    attachmentData.DataUri = $"data:image/jpeg;base64,{Convert.ToBase64String(imageBytes)}";
-                }
-
-                return attachmentData?.DataUri;
-            }
-            else if (attachmentData.IsPoll)
-            {
-                if (attachmentData?.PollData?.ChoiceDatas == null)
-                {
-                    return null;
-                }
-
-                attachmentData?.PollData?.ChoiceDatas?.ForEach(async (ChoiceData choiceData) =>
-                {
-                    string? imageUrl = choiceData.ImageUrl;
-
-                    byte[]? imageBytes = await DiscordUtil.GetImageBytes(imageUrl);
-
-                    if (imageBytes != null)
-                    {
-                        choiceData.ImageDataUri = $"data:image/jpeg;base64,{Convert.ToBase64String(imageBytes)}";
-                    }
-                });
-            }
-            else
-            {
-                if (string.IsNullOrEmpty(attachmentData.Url))
-                {
-                    return null;
-                }
-
-                string? imageUrl = attachmentData.Url;
-
-                byte[]? imageBytes = await DiscordUtil.GetImageBytes(imageUrl);
-
-                if (imageBytes == null)
-                {
-                    return null;
-                }
-
-                if (attachmentData != null)
-                {
-                    attachmentData.DataUri = $"data:image/jpeg;base64,{Convert.ToBase64String(imageBytes)}";
-                }
-
-                return attachmentData?.DataUri;
-            }
-        }
-        catch (Exception ex)
-        {
-            await AlertUtil.ShowErrorAlert(ex.Message);
-        }
-
-        return null;
     }
 }
