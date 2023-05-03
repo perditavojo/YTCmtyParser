@@ -26,6 +26,12 @@ public class ChoiceData
     public string? ImageDataUri { get; set; }
 
     /// <summary>
+    /// 投票數
+    /// </summary>
+    [JsonPropertyName("numVotes")]
+    public string? NumVotes { get; set; }
+
+    /// <summary>
     /// 投票率
     /// </summary>
     [JsonPropertyName("votePercentage")]

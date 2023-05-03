@@ -1,5 +1,4 @@
-﻿using Microsoft.Maui.Controls.Handlers.Compatibility;
-using System.Text.Json;
+﻿using System.Text.Json;
 using YTApi.Commons.Extensions;
 using YTApi.Commons.Models;
 using YTApi.Commons.Sets;
@@ -591,7 +590,8 @@ public static class JsonParser
                 {
                     Text = text,
                     ImageUrl = GetChoicesImage(jsonElement: choice),
-                    VotePercentage = GetChoicesVotePercentageIfNotSelected(jsonElement: choice)
+                    NumVotes = GetChoicesNumVotes(jsonElement: choice),
+                    VotePercentage = GetChoicesVotePercentage(jsonElement: choice)
                 });
             }
         }
@@ -630,12 +630,32 @@ public static class JsonParser
     }
 
     /// <summary>
-    /// 取得 pollRenderer 的 choices 的每個項目的 votePercentageIfNotSelected 的字串
+    /// 取得 pollRenderer 的 choices 的每個項目的 numVotes 的字串
     /// </summary>
     /// <param name="jsonElement">JsonElement</param>
     /// <returns>字串</returns>
-    public static string? GetChoicesVotePercentageIfNotSelected(JsonElement? jsonElement)
+    public static string? GetChoicesNumVotes(JsonElement? jsonElement)
     {
+        // 要登入後才看的到 numVotes。
+        return jsonElement?.Get("numVotes")?.GetString();
+    }
+
+    /// <summary>
+    /// 取得 pollRenderer 的 choices 的每個項目的 votePercentage 的字串
+    /// </summary>
+    /// <param name="jsonElement">JsonElement</param>
+    /// <returns>字串</returns>
+    public static string? GetChoicesVotePercentage(JsonElement? jsonElement)
+    {
+        // 要登入後才看的到 votePercentage。
+        if (jsonElement?.TryGetProperty(
+                propertyName: "votePercentage",
+                value: out JsonElement votePercentage) == true)
+        {
+            return votePercentage.Get("simpleText")?.GetString();
+        }
+
+        // 未登入只能取 votePercentageIfNotSelected。
         return jsonElement?.Get("votePercentageIfNotSelected")?.Get("simpleText")?.GetString();
     }
 

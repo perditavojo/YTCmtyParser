@@ -123,7 +123,19 @@ public class DiscordUtil
                         {
                             if (!string.IsNullOrEmpty(choiceData.Text))
                             {
-                                content += $"- {choiceData.Text}{Environment.NewLine}";
+                                content += $"- {choiceData.Text}";
+
+                                if (!string.IsNullOrEmpty(choiceData.VotePercentage))
+                                {
+                                    content += $"（得票率：{choiceData.VotePercentage}）";
+                                }
+
+                                if (!string.IsNullOrEmpty(choiceData.NumVotes))
+                                {
+                                    content += $"（得票數：{choiceData.NumVotes} 票）";
+                                }
+
+                                content += Environment.NewLine;
                             }
 
                             byte[]? imageBytes = await GetImageBytes(choiceData?.ImageUrl);

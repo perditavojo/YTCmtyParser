@@ -86,9 +86,3 @@ a, .btn-link {
 .container-fluid {
     --bs-gutter-x: 0;
 }
-
-@media (max-width: 300px) {
-    .navbar-brand {
-        display: none;
-    }
-}

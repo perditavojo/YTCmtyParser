@@ -392,7 +392,7 @@
                         string content = sharedWebhooks?.ToJsonString() ?? string.Empty;
 
                         await CustomFunction.SaveToFile(
-                            filePath: FileSet.ChannelsJson,
+                            filePath: FileSet.WebhooksJson,
                             content: content);
 
                         await AlertUtil.ShowToast("已匯入 JSON 檔案。");
@@ -441,29 +441,10 @@
 
             string fileName = $"YTCmtyParser_Webhooks_{DateTime.Now:yyyyMMddHHmmss}.json";
 
-            FileSaverResult? fileSaverResult = null;
-
-            if (DeviceInfo.Platform == DevicePlatform.Android &&
-                OperatingSystem.IsAndroidVersionAtLeast(30))
-            {
-#if ANDROID
-
-    AndroidFileSaver androidFileSaver = new();
-
-    fileSaverResult = await androidFileSaver.SaveAsync(
-       fileName: fileName,
-       stream: memoryStream,
-       cancellationToken: ct);
-
-#endif
-            }
-            else
-            {
-                fileSaverResult = await FileSaver.Default.SaveAsync(
-                   fileName: fileName,
-                   stream: memoryStream,
-                   cancellationToken: ct);
-            }
+            FileSaverResult? fileSaverResult = await CustomFunction.GetFileSaverResult(
+                fileName: fileName,
+                stream: memoryStream,
+                cancellationToken: ct);
 
             fileSaverResult?.EnsureSuccess();
 

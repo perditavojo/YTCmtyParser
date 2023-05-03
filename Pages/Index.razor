@@ -364,6 +364,11 @@
                                                                                     <div class="progress-bar" style="width: @value%">@choiceData?.VotePercentage</div>
                                                                                 </div>
                                                                             }
+
+                                                                            @if (!string.IsNullOrEmpty(choiceData?.NumVotes))
+                                                                            {
+                                                                                <p class="card-text">投票數：@choiceData?.NumVotes 票</p>
+                                                                            }
                                                                         }
                                                                     </div>
                                                                 </div>
@@ -382,6 +387,11 @@
                                                                                 <div class="progress" role="progressbar" aria-label="投票率" aria-valuenow="@value" aria-valuemin="0" aria-valuemax="100">
                                                                                     <div class="progress-bar" style="width: @value%">@choiceData?.VotePercentage</div>
                                                                                 </div>
+                                                                            }
+
+                                                                            @if (!string.IsNullOrEmpty(choiceData?.NumVotes))
+                                                                            {
+                                                                                <p class="card-text">投票數：@choiceData?.NumVotes 票</p>
                                                                             }
                                                                         }
                                                                     </div>

@@ -89,9 +89,14 @@ public static partial class PostDataExtension
                             {
                                 string? suffix = string.Empty;
 
-                                if (!string.IsNullOrEmpty(suffix))
+                                if (!string.IsNullOrEmpty(choiceData.VotePercentage))
                                 {
-                                    suffix = $"（{choiceData.VotePercentage}）";
+                                    suffix = $"（得票率：{choiceData.VotePercentage}）";
+                                }
+
+                                if (!string.IsNullOrEmpty(choiceData.NumVotes))
+                                {
+                                    suffix = $"（得票數：{choiceData.NumVotes} 票）";
                                 }
 
                                 stringBuilder.AppendLine($"{choiceData.Text}{suffix}");
