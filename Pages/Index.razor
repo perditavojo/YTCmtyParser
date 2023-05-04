@@ -96,6 +96,7 @@
                     <label for="cbSetDataUri"
                            class="form-check-label"
                            title="獲取圖片的 Data URI ※在 Android 作業系統上不會使用 Data URI 顯示圖片">
+                        <i class="bi bi-card-image" aria-hidden="true"></i>&nbsp;
                         設定資料統一資源標識符
                     </label>
                 </div>
@@ -172,6 +173,7 @@
                 @foreach (PostData postData in sharedPostDatas)
                 {
                     string whoCanSee = postData.IsSponsorsOnly ? "頻道會員專屬" : "所有頻道會員";
+                    string whoCanSeeClass = postData.IsSponsorsOnly ? "text-success" : string.Empty;
 
                     <div class="card mb-2">
                         <div class="card-header">
@@ -182,21 +184,25 @@
                                             <input type="checkbox" class="form-check-input"
                                            @bind="@postData.IsChecked"
                                            @bind:event="oninput"
-                                           @onchange="(evt) => DoPostDataCheckboxClicked(postData.PostID, evt.Value)" />
+                                           @onchange="(evt) => DoPostDataCheckboxClicked(postData.PostID, evt.Value)"
+                                               title="點選以選取此貼文" />
                                             &nbsp;
-                                            [@whoCanSee]
+                                            <i class="bi bi-people" aria-hidden="true"></i>
+                                            &nbsp;
+                                            <span class="@whoCanSeeClass">@whoCanSee</span>
                                         </div>
                                         <div>
-                                            貼文 ID：
+                                            <i class="bi bi-chat-left-text" aria-hidden="true"></i>
+                                            &nbsp;
                                             <a class="card-link"
                                                href="@postData.Url"
                                                target="_blank">@postData.PostID</a>
                                         </div>
                                         <div class="text-muted">
-                                            <span class="oi oi-calendar" aria-hidden="true"></span>
+                                            <i class="bi bi-calendar" aria-hidden="true"></i>
                                             &nbsp;
                                             @postData.PublishedTimeText?.TrimStart().TrimEnd()&nbsp;
-                                            <span class="oi oi-heart" aria-hidden="true"></span>
+                                            <i class="bi bi-heart" aria-hidden="true"></i>
                                             &nbsp;
                                             @postData.VoteCount?.TrimStart().TrimEnd()
                                         </div>
@@ -293,22 +299,22 @@
                                                 <a class="card-link" href="@videoData?.Url" target="_blank">@videoData?.Title</a>
                                             </h5>
                                             <h6 class="card-subtitle mb-2 text-muted">
-                                                <span class="oi oi-person" aria-hidden="true"></span>
+                                                <span class="bi bi-person" aria-hidden="true"></span>
                                                 &nbsp;
                                                 @videoData?.OwnerText?.TrimStart().TrimEnd()
                                             </h6>
                                             <p class="card-text">
-                                                <span class="oi oi-calendar" aria-hidden="true"></span>
+                                                <span class="bi bi-calendar" aria-hidden="true"></span>
                                                 &nbsp;
                                                 @videoData?.PublishedTimeText?.TrimStart().TrimEnd()
                                             </p>
                                             <p class="card-text">
-                                                <span class="oi oi-timer" aria-hidden="true"></span>
+                                                <i class="bi bi-stopwatch" aria-hidden="true"></i>
                                                 &nbsp;
                                                 @videoData?.LengthText?.TrimStart().TrimEnd()
                                             </p>
                                             <p class="card-text">
-                                                <span class="oi oi-info" aria-hidden="true"></span>
+                                                <i class="bi bi-info-circle" aria-hidden="true"></i>
                                                 &nbsp;簡述：
                                             </p>
                                             <div style="white-space: pre-wrap; line-break: anywhere;">
@@ -348,7 +354,7 @@
                                                             {
                                                                 <div class="col-md-4">
                                                                     <a href="@choiceData?.ImageUrl" target="_blank">
-                                                                        <img src="@attachmentUrl" class="img-fluid img-thumbnail rounded-start" alt="@choiceData?.Text">
+                                                                        <img src="@attachmentUrl" class="img-fluid rounded-start" alt="@choiceData?.Text">
                                                                     </a>
                                                                 </div>
                                                                 <div class="col-md-8">
@@ -437,7 +443,7 @@
                             }
                         }
                         <div class="card-footer text-muted">
-                            <span class="oi oi-link-intact" aria-hidden="true"></span>
+                            <i class="bi bi-link" aria-hidden="true"></i>
                             &nbsp;
                             <a class="card-link"
                                href="@postData.Url"
