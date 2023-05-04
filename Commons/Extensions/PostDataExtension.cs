@@ -18,10 +18,10 @@ public static partial class PostDataExtension
         StringBuilder stringBuilder = new();
 
         stringBuilder.AppendLine($"誰能看到：{(postData.IsSponsorsOnly ? "頻道會員專屬" : "所有頻道會員")}");
-        stringBuilder.AppendLine($"貼文 ID：{postData.PostID}");
-        stringBuilder.AppendLine($"貼文網址：{postData.Url}");
-        stringBuilder.AppendLine($"作者：{postData.AuthorText}");
-        stringBuilder.AppendLine($"作者頭像網址：{postData.AuthorThumbnailUrl}");
+        stringBuilder.AppendLine($"貼文 ID：{postData.PostID ?? "無"}");
+        stringBuilder.AppendLine($"貼文網址：{postData.Url ?? "無"}");
+        stringBuilder.AppendLine($"作者：{postData.AuthorText ?? "無"}");
+        stringBuilder.AppendLine($"作者頭像網址：{postData.AuthorThumbnailUrl ?? "無"}");
 
         if (postData.ContentTexts?.Count > 0)
         {
@@ -48,8 +48,8 @@ public static partial class PostDataExtension
             }
         }
 
-        stringBuilder.AppendLine($"發布時間：{postData.PublishedTimeText}");
-        stringBuilder.AppendLine($"投票次數：{postData.VoteCount}");
+        stringBuilder.AppendLine($"發布時間：{postData.PublishedTimeText ?? "無"}");
+        stringBuilder.AppendLine($"投票次數：{postData.VoteCount ?? "無"}");
 
         if (postData.Attachments?.Count > 0)
         {
@@ -63,14 +63,14 @@ public static partial class PostDataExtension
 
                     if (videoData != null)
                     {
-                        stringBuilder.AppendLine($"網址：{videoData.Url}");
-                        stringBuilder.AppendLine($"縮略圖網址：{videoData.ThumbnailUrl}");
-                        stringBuilder.AppendLine($"標題：{videoData.Title}");
-                        stringBuilder.AppendLine($"描述：{videoData.DescriptionSnippet}");
-                        stringBuilder.AppendLine($"發布時間：{videoData.PublishedTimeText}");
-                        stringBuilder.AppendLine($"長度：{videoData.LengthText}");
-                        stringBuilder.AppendLine($"{videoData.ViewCountText}");
-                        stringBuilder.AppendLine($"所有者：{videoData.OwnerText}");
+                        stringBuilder.AppendLine($"網址：{videoData.Url ?? "無"}");
+                        stringBuilder.AppendLine($"縮略圖網址：{videoData.ThumbnailUrl ?? "無"}");
+                        stringBuilder.AppendLine($"標題：{videoData.Title ?? "無"}");
+                        stringBuilder.AppendLine($"描述：{videoData.DescriptionSnippet ?? "無"}");
+                        stringBuilder.AppendLine($"發布時間：{videoData.PublishedTimeText ?? "無"}");
+                        stringBuilder.AppendLine($"長度：{videoData.LengthText ?? "無"}");
+                        stringBuilder.AppendLine($"{videoData.ViewCountText ?? "無"}");
+                        stringBuilder.AppendLine($"所有者：{videoData.OwnerText ?? "無"}");
                     }
                 }
                 else if (attachment.IsPoll == true)
@@ -87,19 +87,17 @@ public static partial class PostDataExtension
 
                             foreach (ChoiceData choiceData in choiceDatas)
                             {
-                                string? suffix = string.Empty;
+                                stringBuilder.AppendLine($"- {choiceData.Text}");
 
                                 if (!string.IsNullOrEmpty(choiceData.VotePercentage))
                                 {
-                                    suffix = $"（得票率：{choiceData.VotePercentage}）";
+                                    stringBuilder.AppendLine($"  - 得票率：{choiceData.VotePercentage}");
                                 }
 
                                 if (!string.IsNullOrEmpty(choiceData.NumVotes))
                                 {
-                                    suffix = $"（得票數：{choiceData.NumVotes} 票）";
+                                    stringBuilder.AppendLine($"  - 得票數：{choiceData.NumVotes} 票");
                                 }
-
-                                stringBuilder.AppendLine($"{choiceData.Text}{suffix}");
 
                                 if (!string.IsNullOrEmpty(choiceData.ImageUrl))
                                 {
@@ -107,6 +105,7 @@ public static partial class PostDataExtension
                                 }
                             }
 
+                            stringBuilder.AppendLine(string.Empty);
                             stringBuilder.AppendLine($"總投票票數：{pollData?.TotalVotes}");
                         }
                     }
