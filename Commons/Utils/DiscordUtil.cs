@@ -23,10 +23,10 @@ public class DiscordUtil
 
         string content = string.Empty;
 
-        content += $"> 貼文網址：<{postData.Url}>{Environment.NewLine}";
+        content += $"> 貼文網址：{(string.IsNullOrEmpty(postData.Url) ? "無" : $"<{postData.Url}>")}{Environment.NewLine}";
         content += $"> 誰能看到：`{(postData.IsSponsorsOnly ? "頻道會員專屬" : "所有頻道會員")}`{Environment.NewLine}";
-        content += $"> 發布時間：{postData.PublishedTimeText}{Environment.NewLine}";
-        content += $"> 投票次數：{postData.VoteCount}{Environment.NewLine}";
+        content += $"> 發布時間：{postData.PublishedTimeText ?? "無"}{Environment.NewLine}";
+        content += $"> 投票次數：{postData.VoteCount ?? "無"}{Environment.NewLine}";
         content += Environment.NewLine;
 
         if (postData.ContentTexts?.Count > 0)
@@ -75,18 +75,30 @@ public class DiscordUtil
                     string value1 = tempArray1?.Length > 1 ? tempArray1[1] : tempArray1?[0] ?? string.Empty;
                     string value2 = tempArray2?.Length > 1 ? tempArray2[1] : tempArray2?[0] ?? string.Empty;
 
-                    fields.Add(new DiscordMessageEmbedField(
-                        name: "發布時間",
-                        value: value1,
-                        inLine: false));
-                    fields.Add(new DiscordMessageEmbedField(
-                        name: "觀看次數",
-                        value: value2,
-                        inLine: false));
-                    fields.Add(new DiscordMessageEmbedField(
-                        name: "長度",
-                        value: attachmentData?.VideoData?.LengthText,
-                        inLine: false));
+                    if (!string.IsNullOrEmpty(value1))
+                    {
+                        fields.Add(new DiscordMessageEmbedField(
+                            name: "發布時間",
+                            value: value1,
+                            inLine: false));
+                    }
+
+                    if (!string.IsNullOrEmpty(value2))
+                    {
+                        fields.Add(new DiscordMessageEmbedField(
+                            name: "觀看次數",
+                            value: value2,
+                            inLine: false));
+                    }
+
+                    if (!string.IsNullOrEmpty(attachmentData?.VideoData?.LengthText))
+                    {
+
+                        fields.Add(new DiscordMessageEmbedField(
+                            name: "長度",
+                            value: attachmentData?.VideoData?.LengthText,
+                            inLine: false));
+                    }
 
                     Color color = ColorTranslator.FromHtml("#FF0000");
 
@@ -117,7 +129,7 @@ public class DiscordUtil
 
                     if (choiceDatas != null)
                     {
-                        content += $"{Environment.NewLine}投票選項：{Environment.NewLine}";
+                        content += $"{Environment.NewLine}{Environment.NewLine}投票選項：{Environment.NewLine}";
 
                         foreach (ChoiceData choiceData in choiceDatas)
                         {
@@ -127,12 +139,12 @@ public class DiscordUtil
 
                                 if (!string.IsNullOrEmpty(choiceData.VotePercentage))
                                 {
-                                    content += $"（得票率：{choiceData.VotePercentage}）";
+                                    content += $"  - 得票率：{choiceData.VotePercentage}";
                                 }
 
                                 if (!string.IsNullOrEmpty(choiceData.NumVotes))
                                 {
-                                    content += $"（得票數：{choiceData.NumVotes} 票）";
+                                    content += $"  - 得票數：{choiceData.NumVotes} 票";
                                 }
 
                                 content += Environment.NewLine;
@@ -146,7 +158,7 @@ public class DiscordUtil
                             }
                         }
 
-                        content += $"總投票票數：{pollData?.TotalVotes}{Environment.NewLine}";
+                        content += $"{Environment.NewLine}總投票票數：{pollData?.TotalVotes}{Environment.NewLine}";
                     }
                 }
                 else
