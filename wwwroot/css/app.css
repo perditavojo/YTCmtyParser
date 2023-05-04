@@ -1,4 +1,5 @@
-﻿@import url('open-iconic/font/css/open-iconic-bootstrap.min.css');
+@import url('open-iconic/font/css/open-iconic-bootstrap.min.css');
+@import url('bootstrap-icons/bootstrap-icons.min.css');
 
 html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
@@ -83,6 +84,7 @@ a, .btn-link {
     }
 }
 
+/* 取消預設的值，讓兩側貼滿。 */
 .container-fluid {
     --bs-gutter-x: 0;
 }

@@ -18,10 +18,10 @@
         <div class="col-12">
             <div class="row">
                 <div>
-                    <button class="btn btn-outline-info mb-1"
+                    <button class="btn btn-outline-secondary mb-1"
                             @onclick="async () => await ImportJsonFile()"
                             disabled="@isBtnImportJsonFileDisabled">
-                        <span class="oi oi-data-transfer-upload" aria-hidden="true"></span>
+                        <i class="bi bi-upload" aria-hidden="true"></i>
                         &nbsp;
                         載入 JSON 檔案
                     </button>
@@ -64,23 +64,23 @@
                 <button class="btn btn-primary mb-1"
                         @onclick="async () => await FetchInitialPosts(ytChUrl)"
                         disabled="@isBtnFetchLatestPostsDisabled">
-                    <span class="oi oi-cloud-download" aria-hidden="true"></span>
+                    <i class="bi bi-cloud-arrow-down" aria-hidden="true"></i>
                     &nbsp;
                     獲取最新的社群貼文
                 </button>
                 &nbsp;
-                <button class="btn btn-outline-primary mb-1"
+                <button class="btn btn-outline-secondary mb-1"
                         @onclick="async () => await FetchOlderPosts()"
                         disabled="@isBtnFetchOlderPostsDisabled">
-                    <span class="oi oi-cloud-download" aria-hidden="true"></span>
+                    <i class="bi bi-cloud-arrow-down" aria-hidden="true"></i>
                     &nbsp;
                     獲取先前的社群貼文
                 </button>
                 &nbsp;
-                <button class="btn btn-outline-primary mb-1"
+                <button class="btn btn-outline-secondary mb-1"
                         @onclick="async () => await FetchRestPosts()"
                         disabled="@isBtnFetchRestPostsDisabled">
-                    <span class="oi oi-cloud-download" aria-hidden="true"></span>
+                    <i class="bi bi-cloud-arrow-down" aria-hidden="true"></i>
                     &nbsp;
                     獲取剩餘的社群貼文
                 </button>
@@ -104,7 +104,7 @@
                 <button class="btn btn-outline-danger mb-1"
                         @onclick="Reset"
                         disabled="@isBtnResetDisabled">
-                    <span class="oi oi-action-undo" aria-hidden="true"></span>
+                    <i class="bi bi-arrow-clockwise" aria-hidden="true"></i>
                     &nbsp;
                     重設
                 </button>
@@ -123,21 +123,21 @@
                             <div class="col-md-8">
                                 <button class="btn btn-outline-danger mb-1"
                                     @onclick="async () => await DeletePosts()">
-                                    <span class="oi oi-trash" aria-hidden="true"></span>
+                                    <i class="bi bi-trash" aria-hidden="true"></i>
                                     &nbsp;
                                     刪除貼文
                                 </button>
                                 &nbsp;
-                                <button class="btn btn-outline-info mb-1"
+                                <button class="btn btn-outline-secondary mb-1"
                                     @onclick="async () => await ExportJsonFile()">
-                                    <span class="oi oi-data-transfer-download" aria-hidden="true"></span>
+                                    <i class="bi bi-download" aria-hidden="true"></i>
                                     &nbsp;
                                     匯出 JSON 檔案
                                 </button>
                                 &nbsp;
-                                <button class="btn btn-outline-info mb-1"
+                                <button class="btn btn-outline-secondary mb-1"
                                     @onclick="async () => await SendPostsToDiscord()">
-                                    <span class="oi oi-cloud-upload" aria-hidden="true"></span>
+                                    <i class="bi bi-discord" aria-hidden="true"></i>
                                     &nbsp;
                                     傳送貼文至 Discord
                                 </button>
@@ -173,7 +173,7 @@
                 {
                     string whoCanSee = postData.IsSponsorsOnly ? "頻道會員專屬" : "所有頻道會員";
 
-                    <div class="card text-white bg-dark border-danger mb-2">
+                    <div class="card mb-2">
                         <div class="card-header">
                             <div class="col-12">
                                 <div class="row">
@@ -227,21 +227,21 @@
                             <div class="col-12 text-start">
                                 <button class="btn btn-outline-danger mb-1"
                                 @onclick="async () => await DeletePost(postData.PostID)">
-                                    <span class="oi oi-trash" aria-hidden="true"></span>
+                                    <i class="bi bi-trash" aria-hidden="true"></i>
                                     &nbsp;
                                     刪除貼文
                                 </button>
                                 &nbsp;
-                                <button class="btn btn-outline-info mb-1"
+                                <button class="btn btn-outline-secondary mb-1"
                                 @onclick="async () => await ExportJsonFile(postData.PostID)">
-                                    <span class="oi oi-data-transfer-download" aria-hidden="true"></span>
+                                    <i class="bi bi-download" aria-hidden="true"></i>
                                     &nbsp;
                                     匯出 JSON 檔案
                                 </button>
                                 &nbsp;
-                                <button class="btn btn-outline-info mb-1"
+                                <button class="btn btn-outline-secondary mb-1"
                                 @onclick="async () => await SendPostToDiscord(postData.PostID)">
-                                    <span class="oi oi-cloud-upload" aria-hidden="true"></span>
+                                    <i class="bi bi-discord" aria-hidden="true"></i>
                                     &nbsp;
                                     傳送至 Discord
                                 </button>
@@ -424,9 +424,9 @@
                                         <a href="@attachmentData.Url" target="_blank">
                                             <img class="card-img-bottom" src="@attachmentUrl" alt="附件 @idx">
                                         </a>
-                                        <button class="btn btn-outline-danger btn-sm mb-1"
+                                        <button class="btn btn-danger btn-sm mb-1"
                             @onclick="async () => await DeleteAttachment(postData.PostID, attachmentData.Url)">
-                                            <span class="oi oi-trash" aria-hidden="true"></span>
+                                            <i class="bi bi-trash" aria-hidden="true"></i>
                                             &nbsp;
                                             刪除附件
                                         </button>

@@ -13,7 +13,10 @@
 @using YTCmtyParser.Data;
 @inject NavigationManager navigationManager;
 
-<h1>管理 Webhook</h1>
+<h1>
+    <i class="bi bi-discord" aria-hidden="true"></i>&nbsp;
+    管理&nbsp;Webhook
+</h1>
 <div class="card mb-2">
     <div class="card-body">
         <div class="col-12">
@@ -38,7 +41,7 @@
             <div class="text-end mb-2">
                 <button class="btn btn-primary mb-1"
                         @onclick="async () => await AddWebhook()">
-                    <span class="oi oi-plus" aria-hidden="true"></span>
+                    <i class="bi bi-plus" aria-hidden="true"></i>
                     &nbsp;新增 Webhook
                 </button>
             </div>
@@ -50,23 +53,23 @@
         <div class="col-12">
             <div class="row">
                 <div>
-                    <button class="btn btn-outline-info mb-1"
+                    <button class="btn btn-outline-secondary mb-1"
                             @onclick="async () => await ImportJsonFile()">
-                        <span class="oi oi-data-transfer-upload" aria-hidden="true"></span>
+                        <i class="bi bi-upload" aria-hidden="true"></i>
                         &nbsp;
                         匯入 JSON 檔案
                     </button>
                     &nbsp;
-                    <button class="btn btn-outline-info mb-1"
+                    <button class="btn btn-outline-secondary mb-1"
                             @onclick="async () => await ExportJsonFile()">
-                        <span class="oi oi-data-transfer-download" aria-hidden="true"></span>
+                        <i class="bi bi-download" aria-hidden="true"></i>
                         &nbsp;
                         匯出 JSON 檔案
                     </button>
                     &nbsp;
                     <button class="btn btn-outline-danger mb-1"
                             @onclick="async () => await DeleteWebhooks()">
-                        <span class="oi oi-trash" aria-hidden="true"></span>
+                        <i class="bi bi-trash" aria-hidden="true"></i>
                         &nbsp;
                         刪除全部
                     </button>
@@ -91,15 +94,15 @@
                 {
                     <tr>
                         <th scope="row">
-                            <button class="btn btn-outline-warning btn-sm mb-1"
+                            <button class="btn btn-outline-secondary btn-sm mb-1"
                             @onclick="async () =>  await EditWebhook(webhookData.Name)">
-                                <span class="oi oi-pencil" aria-hidden="true"></span>
+                                <i class="bi bi-pencil" aria-hidden="true"></i>
                                 &nbsp;編輯
                             </button>
                             &nbsp;
                             <button class="btn btn-outline-danger btn-sm mb-1"
                             @onclick="async () => await DeleteWebhook(webhookData.Name)">
-                                <span class="oi oi-trash" aria-hidden="true"></span>
+                                <i class="bi bi-trash" aria-hidden="true"></i>
                                 &nbsp;刪除
                             </button>
                         </th>

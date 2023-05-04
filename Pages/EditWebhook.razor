@@ -13,7 +13,10 @@
 @using YTCmtyParser.Commons.Sets;
 @inject NavigationManager navigationManager;
 
-<h1>編輯 Webhook</h1>
+<h1>
+    <i class="bi bi-pencil" aria-hidden="true"></i>&nbsp;
+    編輯&nbsp;Webhook
+</h1>
 <div class="card mb-2">
     <div class="card-body">
         <div class="col-12">
@@ -41,14 +44,14 @@
                 <button class="btn btn-success mb-1"
                         @onclick="async () => await Save()"
                         disabled="@isBtnSaveDisabled">
-                    <span class="oi oi-check" aria-hidden="true"></span>
+                    <i class="bi bi-save" aria-hidden="true"></i>
                     &nbsp;儲存
                 </button>
                 &nbsp;
                 <button class="btn btn-outline-secondary mb-1"
                         @onclick="async () => await BackTo()"
                         disabled="@isBtnBackToDisabled">
-                    <span class="oi oi-action-undo" aria-hidden="true"></span>
+                    <i class="bi bi-arrow-return-left" aria-hidden="true"></i>
                     &nbsp;返回
                 </button>
             </div>

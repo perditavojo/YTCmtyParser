@@ -3,7 +3,10 @@
 @using YTCmtyParser.Commons.Sets;
 @using YTCmtyParser.Commons.Utils;
 
-<h1>設定 Cookies</h1>
+<h1>
+    <i class="bi bi-gear" aria-hidden="true"></i>&nbsp;
+    設定&nbsp;Cookies
+</h1>
 <div class="card mb-2">
     <div class="card-body">
         <div class="col-12">
@@ -78,14 +81,14 @@
             <div class="text-end mb-2">
                 <button class="btn btn-success mb-1"
                         @onclick="async () => await SaveSetting()">
-                    <span class="oi oi-pencil" aria-hidden="true"></span>
+                    <i class="bi bi-save" aria-hidden="true"></i>
                     &nbsp;儲存設定
                 </button>
                 &nbsp;
                 <button class="btn btn-outline-danger mb-1"
                         @onclick="async () => await ClearSetting()">
-                    <span class="oi oi-trash" aria-hidden="true"></span>
-                    &nbsp;清除設定
+                    <i class="bi bi-arrow-clockwise" aria-hidden="true"></i>
+                    &nbsp;重設
                 </button>
             </div>
         </div>
@@ -185,6 +188,15 @@
     {
         try
         {
+            bool? confirm = await AlertUtil.ShowConfirmAlert(
+                "重設設定",
+                "您是否要重設設定？");
+
+            if (confirm == false)
+            {
+                return;
+            }
+
             PreferencesUtil.RemoveKey(KeySet.BrowserType);
             PreferencesUtil.RemoveKey(KeySet.ProfileName);
             PreferencesUtil.RemoveKey(KeySet.Cookies);
