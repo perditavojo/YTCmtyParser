@@ -393,7 +393,6 @@
                         await CustomFunction.SaveToFile(
                             filePath: FileSet.ChannelsJson,
                             content: content);
-
                         await AlertUtil.ShowToast("已匯入 JSON 檔案。");
                     }
                 }
@@ -504,7 +503,6 @@
             await CustomFunction.SaveToFile(
                 filePath: FileSet.ChannelsJson,
                 content: content);
-
             await AlertUtil.ShowToast("已刪除全部的 YouTube 頻道。");
         }
         catch (Exception ex)

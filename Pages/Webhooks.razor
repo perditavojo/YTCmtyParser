@@ -397,7 +397,6 @@
                         await CustomFunction.SaveToFile(
                             filePath: FileSet.WebhooksJson,
                             content: content);
-
                         await AlertUtil.ShowToast("已匯入 JSON 檔案。");
                     }
                 }
@@ -506,9 +505,8 @@
             string content = sharedWebhooks?.ToJsonString() ?? string.Empty;
 
             await CustomFunction.SaveToFile(
-                filePath: FileSet.ChannelsJson,
+                filePath: FileSet.WebhooksJson,
                 content: content);
-
             await AlertUtil.ShowToast("已刪除全部的 Webhook。");
         }
         catch (Exception ex)

@@ -90,11 +90,13 @@ public class AlertUtil
     /// </summary>
     /// <param name="title">字串，標題</param>
     /// <param name="buttons">字串陣列，按鈕</param>
+    /// <param name="destruction">字串，破壞</param>
     /// <param name="cancel">字串，取消</param>
     /// <returns>Task&lt;string&gt;</returns>
     public static async Task<string?> ShowActionSheet(
             string title,
             string?[]? buttons,
+            string? destruction = null,
             string cancel = "取消")
     {
         if (Application.Current?.MainPage != null == true)
@@ -102,7 +104,7 @@ public class AlertUtil
             return await Application.Current.MainPage.DisplayActionSheet(
                 title: title,
                 cancel: cancel,
-                destruction: null,
+                destruction: destruction,
                 buttons: buttons);
         }
 
@@ -113,14 +115,21 @@ public class AlertUtil
     /// 顯示 Toast
     /// </summary>
     /// <param name="message">字串，訊息</param>
+    /// <param name="textSize">數值，文字大小，預設值為 14</param>
     /// <param name="ct">CancellationToken</param>
     /// <returns>Task</returns>
-    public static async Task ShowToast(string message, CancellationToken ct = default)
+    public static async Task ShowToast(
+        string message,
+        double textSize = 14,
+        CancellationToken ct = default)
     {
+        await Task.Delay(
+            millisecondsDelay: 500,
+            cancellationToken: ct);
         await Toast.Make(
                 message: message,
                 duration: ToastDuration.Short,
-                textSize: 14)
+                textSize: textSize)
             .Show(token: ct);
     }
 
@@ -128,14 +137,21 @@ public class AlertUtil
     /// 顯示長時間的 Toast
     /// </summary>
     /// <param name="message">字串，訊息</param>
+    /// <param name="textSize">數值，文字大小，預設值為 14</param>
     /// <param name="ct">CancellationToken</param>
     /// <returns>Task</returns>
-    public static async Task ShowLongToast(string message, CancellationToken ct = default)
+    public static async Task ShowLongToast(
+        string message,
+        double textSize = 14,
+        CancellationToken ct = default)
     {
+        await Task.Delay(
+            millisecondsDelay: 500,
+            cancellationToken: ct);
         await Toast.Make(
                 message: message,
                 duration: ToastDuration.Long,
-                textSize: 14)
+                textSize: textSize)
             .Show(token: ct);
     }
 
@@ -145,21 +161,27 @@ public class AlertUtil
     /// <param name="message">字串，訊息</param>
     /// <param name="action">Action</param>
     /// <param name="actionButtonText">字串，行為按鈕的文字，預設值為 "確認"</param>
+    /// <param name="duration">TimeSpan，顯示時長</param>
+    /// <param name="visualOptions">SnackbarOptions，視覺選項</param>
+    /// <param name="anchor">IView，錨點</param>
     /// <param name="ct">CancellationToken</param>
     /// <returns>Task</returns>
     public static async Task ShowSnackbar(
         string message,
         Action? action = null,
         string actionButtonText = "確認",
+        TimeSpan? duration = null,
+        SnackbarOptions? visualOptions = null,
+        IView? anchor = null,
         CancellationToken ct = default)
     {
         await Snackbar.Make(
                 message: message,
                 action: action,
                 actionButtonText: actionButtonText,
-                duration: null,
-                visualOptions: null,
-                anchor: null)
-            .Show(ct);
+                duration: duration,
+                visualOptions: visualOptions,
+                anchor: anchor)
+            .Show(token: ct);
     }
 }

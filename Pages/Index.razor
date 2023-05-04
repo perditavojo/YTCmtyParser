@@ -13,6 +13,10 @@
 @inject IHttpClientFactory httpClientFactory;
 @inject YTCmtyService ytCmtyService;
 
+<h1>
+    <i class="bi bi-chat-left-text" aria-hidden="true"></i>&nbsp;
+    獲取社群貼文
+</h1>
 <div class="card mb-2">
     <div class="card-body">
         <div class="col-12">
@@ -34,7 +38,12 @@
     <div class="card-body">
         <div class="col-12">
             <div class="form-floating mb-2">
-                <select class="form-select" id="sChannel" @bind="ytChUrl" aria-label="YouTube 頻道">
+                <select class="form-select"
+                        id="sChannel"
+                        @bind="ytChUrl"
+                        @bind:event="oninput"
+                        @onchange="async (evt) => await CheckInputEnabled(evt.Value)"
+                        aria-label="YouTube 頻道">
                     <option value="">
                         - 請選擇 -
                     </option>
@@ -58,7 +67,8 @@
                        @bind="ytChUrl"
                        @bind:event="oninput"
                        @onchange="async (evt) => await ParseUrl(evt.Value)"
-                       placeholder="網址"></input>
+                       placeholder="網址"
+                       disabled="@isInputYtChUrlDisabled"></input>
             </div>
             <div class="mb-2">
                 <button class="btn btn-primary mb-1"
@@ -463,9 +473,11 @@
     protected bool isBtnFetchRestPostsDisabled { get; set; } = true;
     protected bool isBtnImportJsonFileDisabled { get; set; } = false;
     protected bool isBtnResetDisabled { get; set; } = true;
-    // Checkbox 的勾選控制。
+    // checkbox 的勾選控制。
     protected bool isCBCheckAllChecked { get; set; }
     protected bool enableSetDataUri { get; set; } = false;
+    // input 的啟用、禁用控制。
+    protected bool isInputYtChUrlDisabled { get; set; } = false;
 
     // 共用變數。
     private YTConfig? sharedYTConfig;
@@ -523,6 +535,24 @@
             PreferencesUtil.SetValue(KeySet.EnableSetDataUri, value);
 
             await AlertUtil.ShowToast($"{(value ? "已啟用" : "已停用")}設定資料統一資源標識符");
+        }
+        catch (Exception ex)
+        {
+            await AlertUtil.ShowErrorAlert(ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// 檢查是否啟用 input
+    /// </summary>
+    /// <param name="inputValue">object</param>
+    private async Task CheckInputEnabled(object? inputValue)
+    {
+        try
+        {
+            string? value = Convert.ToString(inputValue);
+
+            isInputYtChUrlDisabled = string.IsNullOrEmpty(value) ? false : true;
         }
         catch (Exception ex)
         {

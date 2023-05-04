@@ -230,17 +230,9 @@
 
             await CustomFunction.SaveToFile(
                     filePath: FileSet.ChannelsJson,
-                    content: content)
-                .ContinueWith(async (task) =>
-                {
-                    await Task.Delay(1500);
-                    await AlertUtil.ShowToast($"已修改 YouTube 頻道 \"{inputChannelName}\"。");
-                })
-                .Unwrap()
-                .ContinueWith(async (task) =>
-                {
-                    await BackTo();
-                });
+                    content: content);
+            await AlertUtil.ShowToast($"已修改 YouTube 頻道 \"{inputChannelName}\"。");
+            await BackTo();
         }
         catch (Exception ex)
         {
@@ -263,6 +255,8 @@
     {
         try
         {
+            await Task.Delay(500);
+
             navigationManager.NavigateTo("channels");
         }
         catch (Exception ex)

@@ -228,21 +228,14 @@
                     }
                 }
             }
+
             string content = sharedWebhooks?.ToJsonString() ?? string.Empty;
 
             await CustomFunction.SaveToFile(
                     filePath: FileSet.WebhooksJson,
-                    content: content)
-                .ContinueWith(async (task) =>
-                {
-                    await Task.Delay(1500);
-                    await AlertUtil.ShowToast($"已修改 Webhook \"{inputWebhookName}\"。");
-                })
-                .Unwrap()
-                .ContinueWith(async (task) =>
-                {
-                    await BackTo();
-                });
+                    content: content);
+            await AlertUtil.ShowToast($"已修改 Webhook \"{inputWebhookName}\"。");
+            await BackTo();
         }
         catch (Exception ex)
         {
@@ -265,6 +258,8 @@
     {
         try
         {
+            await Task.Delay(500);
+
             navigationManager.NavigateTo("webhooks");
         }
         catch (Exception ex)

@@ -115,7 +115,9 @@ public static class CustomFunction
         {
             if (string.IsNullOrEmpty(filePath))
             {
-                await AlertUtil.ShowToast($"檔案路徑不得為空。", ct);
+                await AlertUtil.ShowToast(
+                    message: "檔案路徑不得為空。",
+                    ct: ct);
 
                 return;
             }
