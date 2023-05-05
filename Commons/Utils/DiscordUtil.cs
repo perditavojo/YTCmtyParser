@@ -25,8 +25,8 @@ public class DiscordUtil
 
         content += $"> 貼文網址：{(string.IsNullOrEmpty(postData.Url) ? "無" : $"<{postData.Url}>")}{Environment.NewLine}";
         content += $"> 誰能看到：`{(postData.IsSponsorsOnly ? "頻道會員專屬" : "所有頻道會員")}`{Environment.NewLine}";
-        content += $"> 發布時間：{postData.PublishedTimeText ?? "無"}{Environment.NewLine}";
-        content += $"> 投票次數：{postData.VoteCount ?? "無"}{Environment.NewLine}";
+        content += $"> 發布時間：{(string.IsNullOrEmpty(postData.PublishedTimeText) ? "無" : postData.PublishedTimeText)}{Environment.NewLine}";
+        content += $"> 投票次數：{(string.IsNullOrEmpty(postData.VoteCount) ? "無" : postData.VoteCount)}{Environment.NewLine}";
         content += Environment.NewLine;
 
         if (postData.ContentTexts?.Count > 0)
@@ -129,7 +129,8 @@ public class DiscordUtil
 
                     if (choiceDatas != null)
                     {
-                        content += $"{Environment.NewLine}{Environment.NewLine}投票選項：{Environment.NewLine}";
+                        content += $"{Environment.NewLine}{Environment.NewLine}> 投票選項{Environment.NewLine}";
+                        content += $"```markdown{Environment.NewLine}";
 
                         foreach (ChoiceData choiceData in choiceDatas)
                         {
@@ -139,12 +140,12 @@ public class DiscordUtil
 
                                 if (!string.IsNullOrEmpty(choiceData.VotePercentage))
                                 {
-                                    content += $"  - 得票率：{choiceData.VotePercentage}";
+                                    content += $"{Environment.NewLine}  - 得票率：{choiceData.VotePercentage}";
                                 }
 
                                 if (!string.IsNullOrEmpty(choiceData.NumVotes))
                                 {
-                                    content += $"  - 得票數：{choiceData.NumVotes} 票";
+                                    content += $"{Environment.NewLine}  - 得票數：{choiceData.NumVotes} 票";
                                 }
 
                                 content += Environment.NewLine;
@@ -158,7 +159,8 @@ public class DiscordUtil
                             }
                         }
 
-                        content += $"{Environment.NewLine}總投票票數：{pollData?.TotalVotes}{Environment.NewLine}";
+                        content += $"```{Environment.NewLine}";
+                        content += $"總投票票數：{pollData?.TotalVotes}{Environment.NewLine}";
                     }
                 }
                 else
