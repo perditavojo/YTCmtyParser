@@ -1,0 +1,13 @@
+#btnScrollToTop {
+    position: fixed;
+    bottom: 70px;
+    right: 10px;
+    display: none;
+}
+
+#btnScrollToBottom {
+    position: fixed;
+    bottom: 25px;
+    right: 10px;
+    display: none;
+}
