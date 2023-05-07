@@ -1,5 +1,6 @@
 ﻿@page "/cookies"
 
+@using System.Text;
 @using YTCmtyParser.Commons.Sets;
 @using YTCmtyParser.Commons.Utils;
 
@@ -51,6 +52,13 @@
                        @bind="sharedProfileName"
                            placeholder="留空以使用預設值"></input>
                 }
+            </div>
+            <div class="mb-2">
+                <button class="btn btn-outline-primary"
+                        @onclick="async () => await LoadTextFile()">
+                    <i class="bi bi-upload" aria-hidden="true"></i>
+                    &nbsp;載入 cookies.txt
+                </button>
             </div>
             <div class="mb-2">
                 <div class="form-floating">
@@ -258,6 +266,60 @@
             if (string.IsNullOrEmpty(sharedCookies))
             {
                 await AlertUtil.ShowToast("cookies.txt 內容解析失敗。");
+            }
+        }
+        catch (Exception ex)
+        {
+            await AlertUtil.ShowErrorAlert(ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// 匯入文字檔案
+    /// </summary>
+    /// <param name="ct">CancellationToken</param>
+    /// <returns>Task</returns>
+    private async Task LoadTextFile(CancellationToken ct = default)
+    {
+        try
+        {
+            Dictionary<DevicePlatform, IEnumerable<string>> fileTypes = new()
+            {
+                { DevicePlatform.iOS, new string[] { "public.text" } },
+                { DevicePlatform.WinUI, new string[] { ".txt" } },
+                { DevicePlatform.Tizen, new string[] { "*/*" } },
+                { DevicePlatform.tvOS, new string[] { "public.text" } },
+                { DevicePlatform.MacCatalyst, new string[] { "public.text" } },
+                { DevicePlatform.macOS, new string[] { "public.text" } },
+                { DevicePlatform.watchOS, new string[] { "public.text" } },
+                { DevicePlatform.Unknown, new string[] { ".txt" } },
+                { DevicePlatform.Android, new string[] { "text/plain" } }
+            };
+
+            PickOptions pickOptions = new PickOptions()
+                {
+                    FileTypes = new FilePickerFileType(fileTypes),
+                    PickerTitle = "請選擇 cookies.txt 檔案"
+                };
+
+            FileResult? result = await FilePicker.Default.PickAsync(pickOptions);
+
+            if (result != null)
+            {
+                if (result.FileName.EndsWith("txt", StringComparison.OrdinalIgnoreCase))
+                {
+                    using Stream stream = await result.OpenReadAsync();
+
+                    StreamReader streamReader = new(stream);
+
+                    string cookiesContent = streamReader.ReadToEnd();
+
+                    await ParseCookies(cookiesContent);
+                }
+                else
+                {
+                    await AlertUtil.ShowToast("請選擇 cookies.txt 檔案。");
+                }
             }
         }
         catch (Exception ex)

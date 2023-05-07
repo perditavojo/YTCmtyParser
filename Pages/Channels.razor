@@ -103,7 +103,11 @@
                             </button>
                         </th>
                         <td>@channelData.Name</td>
-                        <td style="white-space: pre-wrap; line-break: anywhere;">@channelData.Url</td>
+                        <td style="white-space: pre-wrap; line-break: anywhere;">
+                            <a href="@channelData.Url" target="_blank" title="點擊以開啟頻道連結">
+                                @channelData.Url
+                            </a>
+                        </td>
                     </tr>
                 }
             }

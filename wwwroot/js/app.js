@@ -11,12 +11,13 @@ document.addEventListener("DOMContentLoaded", () => {
             elementBtnScrollToBottom !== undefined &&
             elementBtnScrollToBottom !== null) {
             window.addEventListener("scroll", () => {
+                const scrollHeight = document.body.scrollHeight;
+                const valueHeight = Math.ceil(window.pageYOffset + window.innerHeight);
+
                 if (window.scrollY > 50) {
                     elementBtnScrollToTop.style.display = "block";
 
-                    const valueHeight = Math.ceil(window.pageYOffset + window.innerHeight);
-
-                    if (document.body.scrollHeight <= valueHeight) {
+                    if (valueHeight >= scrollHeight) {
                         elementBtnScrollToBottom.style.display = "none";
                     } else {
                         elementBtnScrollToBottom.style.display = "block";
@@ -24,6 +25,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 } else {
                     elementBtnScrollToTop.style.display = "none";
                     elementBtnScrollToBottom.style.display = "none";
+
+                    /*
+                    if (valueHeight < scrollHeight) {
+                        elementBtnScrollToBottom.style.display = "block";
+                    } else {
+                        elementBtnScrollToBottom.style.display = "none";
+                    }
+                    */
                 }
             });
 
