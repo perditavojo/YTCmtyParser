@@ -8,12 +8,12 @@ public static class StringSet
     /// <summary>
     /// 使用者代理字串
     /// </summary>
-    public static readonly string UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36";
+    public static readonly string UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36";
 
     /// <summary>
     /// Sec-CH-UA
     /// </summary>
-    public static readonly string SecCHUA = "\"Chromium\";v=\"112\", \"Google Chrome\";v=\"112\", \"Not:A-Brand\";v=\"99\"";
+    public static readonly string SecCHUA = "\"Google Chrome\";v=\"113\", \"Chromium\";v=\"113\", \"Not-A.Brand\";v=\"24\"";
 
     /// <summary>
     /// Sec-CH-UA-Mobile
