@@ -100,8 +100,8 @@ public sealed class AndroidFileSaver : IFileSaver
 
     static async Task<string> SaveDocument(AndroidUri uri, Stream stream, CancellationToken cancellationToken)
     {
-        ParcelFileDescriptor? parcelFileDescriptor = Application.Context.ContentResolver?.OpenFileDescriptor(uri, "w");
-        FileOutputStream fileOutputStream = new(parcelFileDescriptor?.FileDescriptor);
+        using ParcelFileDescriptor? parcelFileDescriptor = Application.Context.ContentResolver?.OpenFileDescriptor(uri, "wt");
+        using FileOutputStream fileOutputStream = new(parcelFileDescriptor?.FileDescriptor);
 
         await using MemoryStream memoryStream = new();
 
@@ -109,9 +109,6 @@ public sealed class AndroidFileSaver : IFileSaver
 
         await stream.CopyToAsync(memoryStream, cancellationToken).ConfigureAwait(false);
         await fileOutputStream.WriteAsync(memoryStream.ToArray()).WaitAsync(cancellationToken).ConfigureAwait(false);
-
-        fileOutputStream.Close();
-        parcelFileDescriptor?.Close();
 
         string[] split = uri.Path?.Split(':') ?? throw new FolderPickerException("Unable to resolve path.");
 
