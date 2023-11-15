@@ -25,7 +25,7 @@
                 <input id="iWebhookName" type="text"
                        class="form-control"
                        @bind="sharedWebhookName"
-                       placeholder="名稱"></input>
+                       placeholder="名稱" />
             </div>
             <div class="mb-2">
                 <label for="iWebhookUrl" class="form-label">Webhook 網址</label>
@@ -33,7 +33,7 @@
                        class="form-control"
                        @bind="sharedWebhookUrl"
                        placeholder="網址"
-                       aria-labelledby="dWebhookUrlHelperBlock"></input>
+                       aria-labelledby="dWebhookUrlHelperBlock" />
                 <div id="dWebhookUrlHelperBlock" class="form-text text-danger">
                     ※只支援 Discord 文字頻道的 Webhook 網址。
                 </div>
@@ -95,13 +95,13 @@
                     <tr>
                         <th scope="row">
                             <button class="btn btn-outline-secondary btn-sm mb-1"
-                            @onclick="async () =>  await EditWebhook(webhookData.Name)">
+                                    @onclick="async () =>  await EditWebhook(webhookData.Name)">
                                 <i class="bi bi-pencil" aria-hidden="true"></i>
                                 &nbsp;編輯
                             </button>
                             &nbsp;
                             <button class="btn btn-outline-danger btn-sm mb-1"
-                            @onclick="async () => await DeleteWebhook(webhookData.Name)">
+                                    @onclick="async () => await DeleteWebhook(webhookData.Name)">
                                 <i class="bi bi-trash" aria-hidden="true"></i>
                                 &nbsp;刪除
                             </button>

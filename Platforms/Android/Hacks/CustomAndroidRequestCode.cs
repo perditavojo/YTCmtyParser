@@ -1,7 +1,7 @@
-﻿namespace YTCmtyParser;
+﻿namespace CommunityToolkit.Maui.Storage;
 
 /// <summary>
-/// CustomAndroidRequestCode
+/// 自定義 AndroidRequestCode
 /// <para>來源：https://github.com/CommunityToolkit/Maui/blob/main/src/CommunityToolkit.Maui.Core/Essentials/AndroidRequestCode.android.cs</para>
 /// </summary>
 enum CustomAndroidRequestCode

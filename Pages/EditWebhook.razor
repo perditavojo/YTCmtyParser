@@ -26,7 +26,7 @@
                        class="form-control"
                        @bind="sharedWebhookName"
                        placeholder="名稱"
-                       disabled="@isWebhookNameDisabled"></input>
+                       disabled="@isWebhookNameDisabled" />
             </div>
             <div class="mb-2">
                 <label for="iWebhookUrl" class="form-label">Webhook 網址</label>
@@ -35,7 +35,7 @@
                        @bind="sharedWebhookUrl"
                        placeholder="網址"
                        aria-labelledby="dWebhookUrlHelperBlock"
-                       disabled="@isWebhookUrlDisabled"></input>
+                       disabled="@isWebhookUrlDisabled" />
                 <div id="dWebhookUrlHelperBlock" class="form-text text-danger">
                     ※只支援 Discord 文字頻道的 Webhook 網址。
                 </div>

@@ -1,14 +1,14 @@
-﻿using System.Collections.Concurrent;
-using System.Runtime.Versioning;
-using Android.App;
+﻿using Android.App;
 using Android.Content;
 using Android.Content.PM;
 using Android.OS;
+using System.Collections.Concurrent;
+using System.Runtime.Versioning;
 
-namespace YTCmtyParser;
+namespace Microsoft.Maui.ApplicationModel;
 
 /// <summary>
-/// CustomIntermediateActivity
+/// 自定義 IntermediateActivity
 /// <para>來源：https://github.com/dotnet/maui/blob/main/src/Essentials/src/Platform/IntermediateActivity.android.cs</para>
 /// </summary>
 [SupportedOSPlatform("Android")]
@@ -31,7 +31,7 @@ class CustomIntermediateActivity : Activity
     {
         base.OnCreate(savedInstanceState);
 
-        var extras = savedInstanceState ?? Intent?.Extras;
+        Bundle? extras = savedInstanceState ?? Intent?.Extras;
 
         // read the values
         launched = extras?.GetBoolean(launchedExtra, false) ?? false;
@@ -50,17 +50,19 @@ class CustomIntermediateActivity : Activity
             task.OnCreate?.Invoke(actualIntent!);
         }
 
-        // if this is the first time, lauch the real activity
+        // If this is the first time, lauch the real activity.
         if (!launched)
+        {
             StartActivityForResult(actualIntent, requestCode);
+        }
     }
 
     protected override void OnSaveInstanceState(Bundle outState)
     {
-        // make sure we mark this activity as launched
+        // Make sure we mark this activity as launched.
         outState.PutBoolean(launchedExtra, true);
 
-        // save the values
+        // Save the values.
         outState.PutParcelable(actualIntentExtra, actualIntent);
         outState.PutString(guidExtra, guid);
         outState.PutInt(requestCodeExtra, requestCode);
@@ -72,7 +74,7 @@ class CustomIntermediateActivity : Activity
     {
         base.OnActivityResult(requestCode, resultCode, data);
 
-        // we have a valid GUID, so handle the task
+        // We have a valid GUID, so handle the task.
         if (GetIntermediateTask(guid, true) is IntermediateTask task)
         {
             if (resultCode == Result.Canceled)
@@ -96,26 +98,28 @@ class CustomIntermediateActivity : Activity
             }
         }
 
-        // close the intermediate activity
+        // Close the intermediate activity.
         Finish();
     }
 
     public static Task<Intent> StartAsync(Intent intent, int requestCode, Action<Intent>? onCreate = null, Action<Intent>? onResult = null)
     {
-        // make sure we have the activity
-        var activity = ActivityStateManager.Default.GetCurrentActivity()!;
+        // Make sure we have the activity.
+        Activity? activity = ActivityStateManager.Default.GetCurrentActivity()!;
 
-        // create a new task
-        var data = new IntermediateTask(onCreate, onResult);
+        // Create a new task.
+        IntermediateTask data = new(onCreate, onResult);
+
         pendingTasks[data.Id] = data;
 
-        // create the intermediate intent, and add the real intent to it
-        var intermediateIntent = new Intent(activity, typeof(CustomIntermediateActivity));
+        // Create the intermediate intent, and add the real intent to it.
+        Intent intermediateIntent = new(activity, typeof(CustomIntermediateActivity));
+
         intermediateIntent.PutExtra(actualIntentExtra, intent);
         intermediateIntent.PutExtra(guidExtra, data.Id);
         intermediateIntent.PutExtra(requestCodeExtra, requestCode);
 
-        // start the intermediate activity
+        // Start the intermediate activity.
         activity.StartActivityForResult(intermediateIntent, requestCode);
 
         return data.TaskCompletionSource.Task;
@@ -124,35 +128,30 @@ class CustomIntermediateActivity : Activity
     static IntermediateTask? GetIntermediateTask(string? guid, bool remove = false)
     {
         if (string.IsNullOrEmpty(guid))
+        {
             return null;
+        }
 
         if (remove)
         {
             pendingTasks.TryRemove(guid, out var removedTask);
+
             return removedTask;
         }
 
         pendingTasks.TryGetValue(guid, out var task);
+
         return task;
     }
 
-    class IntermediateTask
+    class IntermediateTask(Action<Intent>? onCreate, Action<Intent>? onResult)
     {
-        public IntermediateTask(Action<Intent>? onCreate, Action<Intent>? onResult)
-        {
-            Id = Guid.NewGuid().ToString();
-            TaskCompletionSource = new TaskCompletionSource<Intent>();
+        public string Id { get; } = Guid.NewGuid().ToString();
 
-            OnCreate = onCreate;
-            OnResult = onResult;
-        }
+        public TaskCompletionSource<Intent> TaskCompletionSource { get; } = new TaskCompletionSource<Intent>();
 
-        public string Id { get; }
+        public Action<Intent>? OnCreate { get; } = onCreate;
 
-        public TaskCompletionSource<Intent> TaskCompletionSource { get; }
-
-        public Action<Intent>? OnCreate { get; }
-
-        public Action<Intent>? OnResult { get; }
+        public Action<Intent>? OnResult { get; } = onResult;
     }
 }

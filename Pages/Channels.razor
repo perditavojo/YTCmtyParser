@@ -25,14 +25,14 @@
                 <input id="iChannelName" type="text"
                        class="form-control"
                        @bind="sharedChannelName"
-                       placeholder="名稱"></input>
+                       placeholder="名稱" />
             </div>
             <div class="mb-2">
                 <label for="iChannelUrl" class="form-label">YouTube 頻道網址</label>
                 <input id="iChannelUrl" type="url"
                        class="form-control"
                        @bind="sharedChannelUrl"
-                       placeholder="網址"></input>
+                       placeholder="網址" />
             </div>
             <div class="text-end mb-2">
                 <button class="btn btn-primary mb-1"
@@ -91,13 +91,13 @@
                     <tr>
                         <th scope="row">
                             <button class="btn btn-outline-secondary btn-sm mb-1"
-                            @onclick="async () =>  await EditChannel(channelData.Name)">
+                                    @onclick="async () =>  await EditChannel(channelData.Name)">
                                 <i class="bi bi-pencil" aria-hidden="true"></i>
                                 &nbsp;編輯
                             </button>
                             &nbsp;
                             <button class="btn btn-outline-danger btn-sm mb-1"
-                            @onclick="async () => await DeleteChannel(channelData.Name)">
+                                    @onclick="async () => await DeleteChannel(channelData.Name)">
                                 <i class="bi bi-trash" aria-hidden="true"></i>
                                 &nbsp;刪除
                             </button>

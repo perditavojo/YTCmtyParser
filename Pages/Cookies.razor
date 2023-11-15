@@ -47,10 +47,11 @@
                         <label for="sBrowserType">網頁瀏覽器</label>
                     </div>
                     <label for="iProfileName" class="form-label">設定檔名稱／路徑</label>
-                    <input id="iProfileName" type="text"
+                    <input id="iProfileName"
+                           type="text"
                            class="form-control"
-                       @bind="sharedProfileName"
-                           placeholder="留空以使用預設值"></input>
+                           @bind="sharedProfileName"
+                           placeholder="留空以使用預設值" />
                 }
             </div>
             <div class="mb-2">
@@ -80,7 +81,7 @@
             </div>
             <div class="mb-2">
                 <div class="form-check">
-                    <input id="cbUseCookies" class="form-check-input" type="checkbox" @bind="@sharedUseCookies">
+                    <input id="cbUseCookies" class="form-check-input" type="checkbox" @bind="@sharedUseCookies" />
                     <label for="cbUseCookies" class="form-check-label">
                         使用 Cookies
                     </label>

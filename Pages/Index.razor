@@ -133,21 +133,21 @@
                         <div class="row">
                             <div class="col-md-8">
                                 <button class="btn btn-outline-danger mb-1"
-                                    @onclick="async () => await DeletePosts()">
+                                        @onclick="async () => await DeletePosts()">
                                     <i class="bi bi-trash" aria-hidden="true"></i>
                                     &nbsp;
                                     刪除貼文
                                 </button>
                                 &nbsp;
                                 <button class="btn btn-outline-secondary mb-1"
-                                    @onclick="async () => await ExportJsonFile()">
+                                        @onclick="async () => await ExportJsonFile()">
                                     <i class="bi bi-download" aria-hidden="true"></i>
                                     &nbsp;
                                     匯出 JSON 檔案
                                 </button>
                                 &nbsp;
                                 <button class="btn btn-outline-secondary mb-1"
-                                    @onclick="async () => await SendPostsToDiscord()">
+                                        @onclick="async () => await SendPostsToDiscord()">
                                     <i class="bi bi-discord" aria-hidden="true"></i>
                                     &nbsp;
                                     傳送貼文至 Discord
@@ -171,11 +171,11 @@
             <div class="mb-2">
                 <div class="form-check">
                     <input id="cbSelectAll"
-                       type="checkbox"
-                       class="form-check-input"
-                       @bind="isCBCheckAllChecked"
-                       @bind:event="oninput"
-                       @onchange="(evt) => DoCheckAllClicked(evt.Value)" />
+                           type="checkbox"
+                           class="form-check-input"
+                           @bind="isCBCheckAllChecked"
+                           @bind:event="oninput"
+                           @onchange="(evt) => DoCheckAllClicked(evt.Value)" />
                     <label for="cbSelectAll" class="form-check-label">全選貼文</label>&nbsp;
                 </div>
             </div>
@@ -192,10 +192,10 @@
                                     <div class="col-md-7 text-start" style="vertical-align: middle;">
                                         <div>
                                             <input type="checkbox" class="form-check-input"
-                                           @bind="@postData.IsChecked"
-                                           @bind:event="oninput"
-                                           @onchange="(evt) => DoPostDataCheckboxClicked(postData.PostID, evt.Value)"
-                                               title="點選以選取此貼文" />
+                                                   @bind="@postData.IsChecked"
+                                                   @bind:event="oninput"
+                                                   @onchange="(evt) => DoPostDataCheckboxClicked(postData.PostID, evt.Value)"
+                                                   title="點選以選取此貼文" />
                                             &nbsp;
                                             <i class="bi bi-people" aria-hidden="true"></i>
                                             &nbsp;
@@ -242,21 +242,21 @@
                         <div class="card-body">
                             <div class="col-12 text-start">
                                 <button class="btn btn-outline-danger mb-1"
-                                @onclick="async () => await DeletePost(postData.PostID)">
+                                        @onclick="async () => await DeletePost(postData.PostID)">
                                     <i class="bi bi-trash" aria-hidden="true"></i>
                                     &nbsp;
                                     刪除貼文
                                 </button>
                                 &nbsp;
                                 <button class="btn btn-outline-secondary mb-1"
-                                @onclick="async () => await ExportJsonFile(postData.PostID)">
+                                        @onclick="async () => await ExportJsonFile(postData.PostID)">
                                     <i class="bi bi-download" aria-hidden="true"></i>
                                     &nbsp;
                                     匯出 JSON 檔案
                                 </button>
                                 &nbsp;
                                 <button class="btn btn-outline-secondary mb-1"
-                                @onclick="async () => await SendPostToDiscord(postData.PostID)">
+                                        @onclick="async () => await SendPostToDiscord(postData.PostID)">
                                     <i class="bi bi-discord" aria-hidden="true"></i>
                                     &nbsp;
                                     傳送至 Discord
@@ -441,7 +441,7 @@
                                             <img class="card-img-bottom" src="@attachmentUrl" alt="附件 @idx">
                                         </a>
                                         <button class="btn btn-danger btn-sm mb-1"
-                            @onclick="async () => await DeleteAttachment(postData.PostID, attachmentData.Url)">
+                                                @onclick="async () => await DeleteAttachment(postData.PostID, attachmentData.Url)">
                                             <i class="bi bi-trash" aria-hidden="true"></i>
                                             &nbsp;
                                             刪除附件
